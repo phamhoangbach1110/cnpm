@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hệ thống quản lý phòng học</title>
+    <link rel="stylesheet" href="/static/style.css?v=1.2">
+</head>
+<body>
+
+<div class="container">
+    {% if current_user %}
+    <div style="float:right; margin-bottom: 10px;">
+        <div class="user-panel">
+            Xin chào, <strong>{{ current_user.username }}</strong>
+
+            <form action="/logout" method="get" style="display:inline;">
+                <button type="submit" class="logout-btn">Đăng xuất</button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <div style="float:right; margin-bottom: 10px;">
+        <a href="/login">Đăng nhập</a>
+    </div>
+    {% endif %}
+
+    <h1 class="page-title">Hệ thống quản lý phòng học</h1>
+
+    <div class="filters">
+        <div>
+            <label>Tòa nhà:</label><br>
+            <select id="building">
+                <option value="All" selected>Tất cả</option>
+                <option value="A">Tòa A</option>
+                <option value="B">Tòa B</option>
+                <option value="C">Tòa C</option>
+            </select>
+        </div>
+        <div>
+            <label>Ngày:</label><br>
+            <input type="date" id="date"/>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr id="tableHeader">
+                <th>Phòng</th>
+                <th>Sức chứa</th>
+            </tr>
+        </thead>
+        <tbody id="roomTable"></tbody>
+    </table>
+</div>
+
+<!-- Popup ĐẶT phòng -->
+<div id="popupOverlay" class="popup-overlay" style="display:none;">
+    <div class="popup">
+        <h2>Xác nhận đặt phòng</h2>
+        <div class="popup-content">
+            <div>Phòng: <b id="popupRoom"></b></div>
+            <div>Ngày: <b id="popupDate"></b></div>
+            <div>Bắt đầu: <b id="popupStart"></b></div>
+            <div>Kết thúc: <b id="popupEnd"></b></div>
+            <div>
+                <label>Mục đích (bắt buộc):</label>
+                <textarea id="popupPurpose" rows="3"></textarea>
+            </div>
+        </div>
+        <div class="popup-buttons">
+            <button onclick="closePopup()">Đóng</button>
+            <button onclick="confirmBooking()">Xác nhận</button>
+        </div>
+    </div>
+</div>
+
+<!-- Popup HỦY phòng -->
+<div id="cancelBookingPopup" class="popup-overlay" style="display:none;">
+    <div class="popup">
+        <h2>Hủy đặt phòng</h2>
+        <div>
+            <b>Phòng:</b> <span id="cancelRoom"></span><br>
+            <b>Ngày:</b> <span id="cancelDate"></span><br>
+            <b>Thời gian:</b> <span id="cancelTime"></span><br>
+            <b>Mục đích:</b> <span id="cancelPurpose"></span><br>
+        </div>
+        <div class="popup-buttons">
+            <button onclick="confirmCancelBooking()">Xóa</button>
+            <button onclick="closeCancelPopup()">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const rooms = [
+    { name: "A101", capacity: 40, building: "A" },
+    { name: "A102", capacity: 40, building: "A" },
+    { name: "A103", capacity: 40, building: "A" },
+    { name: "A201", capacity: 40, building: "A" },
+    { name: "A202", capacity: 40, building: "A" },
+    { name: "A203", capacity: 50, building: "A" },
+    { name: "A301", capacity: 70, building: "A" },
+    { name: "A302", capacity: 90, building: "A" },
+    { name: "A303", capacity: 60, building: "A" },
+    { name: "A401", capacity: 60, building: "A" },
+    { name: "A609", capacity: 69, building: "A" },
+    { name: "B101", capacity: 40, building: "B" },
+    { name: "B102", capacity: 40, building: "B" },
+    { name: "B103", capacity: 40, building: "B" },
+    { name: "B201", capacity: 40, building: "B" },
+    { name: "B202", capacity: 50, building: "B" },
+    { name: "B203", capacity: 50, building: "B" },
+    { name: "B301", capacity: 50, building: "B" },
+    { name: "B302", capacity: 50, building: "B" },
+    { name: "B303", capacity: 60, building: "B" },
+    { name: "B401", capacity: 70, building: "B" },
+    { name: "C101", capacity: 80, building: "C" },
+    { name: "C102", capacity: 80, building: "C" },
+    { name: "C103", capacity: 80, building: "C" },
+    { name: "C201", capacity: 80, building: "C" },
+    { name: "C202", capacity: 80, building: "C" },
+    { name: "C203", capacity: 80, building: "C" },
+    { name: "C301", capacity: 80, building: "C" },
+    { name: "C302", capacity: 80, building: "C" },
+    { name: "C303", capacity: 80, building: "C" },
+    { name: "C401", capacity: 100, building: "C" },
+];
+
+let timeSlots = [];
+let m1 = 55;
+timeSlots.push(`${String(7).padStart(2,"0")}:00`);
+for (let h = 7; h < 12; h++, m1-=5) {
+    timeSlots.push(`${String(h).padStart(2,"0")}:${String(m1).padStart(2,"0")}`);
+}
+timeSlots.push(`${String(12).padStart(2,"0")}:25`);
+
+let m2 = 55;
+for (let h = 12; h < 18; h++, m2-=5) {
+    timeSlots.push(`${String(h).padStart(2,"0")}:${String(m2).padStart(2,"0")}`);
+}
+timeSlots.push(`${String(18).padStart(2,"0")}:20`);
+
+let m3 = 50;
+for (let h = 18; h < 21; h++, m3-=5) {
+    timeSlots.push(`${String(h).padStart(2,"0")}:${String(m3).padStart(2,"0")}`);
+}
+timeSlots.push(`${String(21).padStart(2,"0")}:30`);
+
+let selectedRoom = null, selectedDate = null;
+let selectedStartTime = null, selectedEndTime = null;
+let selectedBookingId = null;
+
+let dragging = false;
+let dragStart = null;
+
+let isCancelling = false;
+
+// --- TẠO HEADER THỜI GIAN ---
+function createTimelineColumns() {
+    const header = document.getElementById("tableHeader");
+    header.querySelectorAll("th:not(:first-child):not(:nth-child(2))").forEach(e => e.remove());
+    timeSlots.forEach(time => {
+        const th = document.createElement("th");
+        th.textContent = time;
+        header.appendChild(th);
+    });
+}
+
+// --- HIỂN THỊ PHÒNG ---
+function loadRooms() {
+    const tbody = document.getElementById("roomTable");
+    tbody.innerHTML = "";
+    const building = document.getElementById("building").value;
+
+    rooms
+        .filter(r => building === "All" || r.building === building)
+        .forEach(room => {
+        const tr = document.createElement("tr");
+        tr.dataset.room = room.name;
+        tr.innerHTML = `<td>${room.name}</td><td>${room.capacity}</td>`;
+
+        timeSlots.forEach((time, index) => {
+            const td = document.createElement("td");
+            td.classList.add("time-slot");
+            td.dataset.time = time;
+            td.dataset.index = index;
+            tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+    });
+
+    addDragEvents();
+}
+
+// --- LOAD BOOKING (TÔ XANH) ---
+async function loadBookings() {
+    const dateInput = document.getElementById("date").value;
+    if (!dateInput) return;
+
+    try {
+        const res = await fetch(`/api/bookings?date=${dateInput}`);
+        if (!res.ok) return;
+        const bookings = await res.json();
+
+        document.querySelectorAll(".time-slot").forEach(c => {
+            c.style.backgroundColor = "";
+            c.style.color = "";
+            c.textContent = "";
+            c.removeAttribute("colspan");
+            c.style.display = "";
+        });
+
+        bookings.forEach(b => {
+            const row = document.querySelector(`tr[data-room="${b.room_name}"]`);
+            if (!row) return;
+
+            let startIndex = timeSlots.indexOf(b.start_time);
+            let endIndex = timeSlots.indexOf(b.end_time);
+            if (startIndex === -1 || endIndex === -1) return;
+
+            let colspan = endIndex - startIndex;
+            const startCell = row.querySelector(`td[data-index="${startIndex}"]`);
+            if (startCell) {
+                startCell.style.backgroundColor = "#8FBC8F";
+                startCell.style.color = "white";
+                startCell.textContent = b.purpose;
+
+                // Gán dữ liệu
+                startCell.dataset.id = b.id;
+                startCell.dataset.room = b.room_name;
+                startCell.dataset.start = b.start_time;
+                startCell.dataset.end = b.end_time;
+                startCell.dataset.date = dateInput;
+                startCell.dataset.purpose = b.purpose;
+
+                // -- GÁN CLICK CHO Ô ĐÃ ĐẶT (MỞ POPUP HỦY) --
+                startCell.onclick = () => openCancelPopup(startCell);
+
+                startCell.colSpan = colspan + 1;
+                startCell.classList.add("booked");
+
+                // Nếu click vào ô đã đặt -> chuyển sang chế độ hủy
+                startCell.addEventListener("click", (e) => {
+                    isCancelling = true;
+                });
+            }
+
+            for (let i = startIndex + 1; i <= endIndex; i++) {
+                const cell = row.querySelector(`td[data-index="${i}"]`);
+                if (cell) cell.style.display = "none";
+            }
+        });
+
+    } catch {
+        console.error("Không tải được lịch đặt phòng");
+    }
+}
+
+// Khi click vào ô đã đặt -> hiển thị popup hủy
+document.addEventListener("click", (e) => {
+    if (!isCancelling) return; // chỉ cho click vào khi đang hủy
+
+    const cell = e.target.closest(".booked");
+    if (!cell || !cell.dataset.id) return;  // đảm bảo có id
+
+    // Lưu ID vào biến toàn cục
+    selectedBookingId = cell.dataset.id;
+
+    console.log(">>> ID đặt phòng khi click:", selectedBookingId); // kiểm tra
+
+    // Gán thông tin popup
+    selectedRoom = cell.dataset.room;
+    selectedDate = cell.dataset.date;
+    selectedStartTime = cell.dataset.start;
+    selectedEndTime = cell.dataset.end;
+    selectedPurpose = cell.dataset.purpose;
+
+    document.getElementById("cancelRoom").textContent = selectedRoom;
+    document.getElementById("cancelDate").textContent = selectedDate;
+    document.getElementById("cancelTime").textContent = `${selectedStartTime} - ${selectedEndTime}`;
+    document.getElementById("cancelPurpose").textContent = selectedPurpose;
+
+    // Mở popup hủy phòng
+    document.getElementById("cancelBookingPopup").style.display = "flex";
+});
+
+function addDragEvents() {
+    // sử dụng biến trạng thái toàn cục
+    dragging = false;
+    dragStart = null;
+
+    // helper: từ một điểm (clientX, clientY) tìm ô .time-slot trong cùng hàng với dragStart
+    function cellFromPointInRow(clientX, clientY, row) {
+        // Lấy danh sách phần tử nằm dưới con trỏ (từ trên xuống)
+        const elems = document.elementsFromPoint(clientX, clientY);
+        for (const el of elems) {
+            const td = el.closest(".time-slot");
+            if (!td) continue;
+            if (row && td.parentElement !== row) continue;
+            return td;
+        }
+        return null;
+    }
+
+    document.querySelectorAll(".time-slot").forEach(cell => {
+        // mousedown bắt đầu kéo
+        cell.addEventListener("mousedown", e => {
+            // nếu click lên ô đã đặt thì không cho kéo
+            if (cell.classList.contains("booked")) return;
+            // tắt chế độ hủy (nếu bạn dùng isCancelling)
+            if (typeof isCancelling !== "undefined") isCancelling = false;
+
+            dragging = true;
+            dragStart = cell;
+            cell.classList.add("dragging");
+            // khi bắt đầu, highlight ô bắt đầu
+            document.querySelectorAll(".dragging").forEach(c => c.classList.remove("dragging"));
+            cell.classList.add("dragging");
+            // ngăn chọn text
+            e.preventDefault();
+        });
+
+        // mouseenter vẫn có thể dùng để highlight nhưng không dùng để quyết định kết quả cuối cùng
+        cell.addEventListener("mouseenter", e => {
+            if (!dragging || !dragStart) return;
+            if (dragStart.parentElement !== cell.parentElement) return;
+            cell.classList.add("dragging");
+        });
+    });
+
+    // bắt toàn cục mousemove để highlight theo tọa độ chuột (chính xác hơn)
+    document.addEventListener("mousemove", (e) => {
+        if (!dragging || !dragStart) return;
+        const row = dragStart.parentElement;
+        const cur = cellFromPointInRow(e.clientX, e.clientY, row);
+        // reset highlight
+        document.querySelectorAll(".dragging").forEach(c => c.classList.remove("dragging"));
+        if (!cur) {
+            // highlight lại start nếu không nằm trên hàng
+            dragStart.classList.add("dragging");
+            return;
+        }
+        // highlight các ô từ start -> cur
+        const startIdx = parseInt(dragStart.dataset.index);
+        const curIdx = parseInt(cur.dataset.index);
+        const from = Math.min(startIdx, curIdx);
+        const to = Math.max(startIdx, curIdx);
+        for (let i = from; i <= to; i++) {
+            const slot = row.querySelector(`td[data-index="${i}"]`);
+            if (slot) slot.classList.add("dragging");
+        }
+    });
+
+    // mouseup toàn cục: dùng tọa độ để xác định ô kết thúc chính xác
+    document.addEventListener("mouseup", (e) => {
+        if (!dragging || !dragStart) {
+            dragging = false;
+            dragStart = null;
+            document.querySelectorAll(".dragging").forEach(c => c.classList.remove("dragging"));
+            return;
+        }
+
+        const row = dragStart.parentElement;
+        const endCell = cellFromPointInRow(e.clientX, e.clientY, row);
+
+        // reset flag kéo
+        dragging = false;
+
+        // xóa class highlight tạm thời
+        document.querySelectorAll(".dragging").forEach(c => c.classList.remove("dragging"));
+
+        if (!endCell) {
+            // nếu mouseup không nằm trên cùng 1 hàng -> bỏ
+            dragStart = null;
+            return;
+        }
+
+        const startIndex = parseInt(dragStart.dataset.index);
+        const endIndex = parseInt(endCell.dataset.index);
+        const from = Math.min(startIndex, endIndex);
+        const to = Math.max(startIndex, endIndex);
+
+        // kiểm tra trùng với ô đã book
+        for (let i = from; i <= to; i++) {
+            const slot = row.querySelector(`td[data-index="${i}"]`);
+            if (slot && slot.classList.contains("booked")) {
+                alert("Khung giờ này đã có người đặt trước!");
+                dragStart = null;
+                return;
+            }
+        }
+
+        // gọi popup đặt bằng 2 ô thực tế: dragStart và endCell
+        showPopup(dragStart, endCell);
+
+        dragStart = null;
+    });
+
+    // đảm bảo nếu chuột rời cửa sổ thì reset
+    window.addEventListener("mouseleave", () => {
+        dragging = false;
+        dragStart = null;
+        document.querySelectorAll(".dragging").forEach(c => c.classList.remove("dragging"));
+    });
+}
+
+// --- POPUP ĐẶT PHÒNG ---
+function showPopup(startCell, endCell) {
+    const dateInput = document.getElementById("date").value;
+    if (!dateInput) return alert("Vui lòng chọn ngày!");
+
+    selectedRoom = startCell.parentElement.dataset.room;
+    selectedDate = dateInput;
+
+    let startIndex = parseInt(startCell.dataset.index);
+    let endIndex = parseInt(endCell.dataset.index);
+    selectedStartTime = timeSlots[Math.min(startIndex, endIndex)];
+    selectedEndTime = timeSlots[Math.max(startIndex, endIndex)];
+
+    document.getElementById("popupRoom").textContent = selectedRoom;
+    document.getElementById("popupDate").textContent = selectedDate;
+    document.getElementById("popupStart").textContent = selectedStartTime;
+    document.getElementById("popupEnd").textContent = selectedEndTime;
+
+    document.getElementById("popupOverlay").style.display = "flex";
+}
+
+function closePopup() {
+    document.getElementById("popupOverlay").style.display = "none";
+}
+
+// --- CONFIRM ĐẶT PHÒNG ---
+async function confirmBooking() {
+    const input = document.getElementById("popupPurpose");
+    const purpose = input.value.trim();
+    if (!purpose) return alert("Vui lòng nhập mục đích!");
+
+    try {
+        const res = await fetch("/api/bookings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                room_name: selectedRoom,
+                date: selectedDate,
+                start_time: selectedStartTime,
+                end_time: selectedEndTime,
+                purpose: purpose
+            })
+        });
+
+        if (!res.ok) return alert("Lỗi: " + (await res.json()).detail);
+
+        alert("Đặt phòng thành công!");
+
+        closePopup();
+        input.value = ""; // RESET mục đích
+        isCancelling = false; // quay về chế độ đặt
+
+        loadRooms();   // <--- Gọi cái này TRƯỚC
+        loadBookings(); // Sau
+    } catch {
+        alert("Không kết nối được server.");
+    }
+}
+
+// --- POPUP HỦY PHÒNG ---
+function openCancelPopup(cell) {
+    selectedBookingId = cell.dataset.id;
+    document.getElementById("cancelRoom").textContent = cell.dataset.room;
+    document.getElementById("cancelDate").textContent = cell.dataset.date;
+    document.getElementById("cancelTime").textContent = `${cell.dataset.start} - ${cell.dataset.end}`;
+    document.getElementById("cancelPurpose").textContent = cell.dataset.purpose;
+    document.getElementById("cancelBookingPopup").style.display = "flex";
+}
+
+function closeCancelPopup() {
+    document.getElementById("cancelBookingPopup").style.display = "none";
+}
+
+async function confirmCancelBooking() {
+    if (!confirm("Bạn có chắc muốn hủy đặt phòng này?")) return;
+
+    const res = await fetch(`/api/bookings/${selectedBookingId}`, { method: "DELETE" });
+
+    if (res.ok) {
+        alert("Đã xóa đặt phòng!");
+        closeCancelPopup();
+        isCancelling = false;  // quan trọng
+
+        loadRooms();    // CHẠY TRƯỚC
+        loadBookings(); // rồi đến
+    } else {
+        alert("Lỗi khi hủy đặt phòng");
+    }
+}
+
+// --- EVENT KHỞI TẠO ---
+window.onload = () => {
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("date").value = today;
+
+    createTimelineColumns();
+    loadRooms();
+    loadBookings();
+};
+document.getElementById("building").addEventListener("change", () => { createTimelineColumns(); loadRooms(); loadBookings(); });
+document.getElementById("date").addEventListener("change", () => { loadRooms(); loadBookings(); });
+// Reset trạng thái mỗi khi đổi ngày
+document.getElementById("date").addEventListener("change", () => {
+    isCancelling = false;
+});
+
+// Hoặc khi đổi tòa nhà
+document.getElementById("building").addEventListener("change", () => {
+    isCancelling = false;
+});
+
+</script>
+
+<div id="tooltip" class="tooltip-box" style="display:none; position:absolute;"></div>
+
+<script>
+(function() {
+  const tooltip = document.getElementById('tooltip');
+  if (!tooltip) return;
+
+  // đảm bảo style cơ bản
+  tooltip.style.display = 'none';
+  tooltip.style.position = 'absolute';
+  tooltip.style.zIndex = 9999;
+  tooltip.style.pointerEvents = 'none'; // không chặn con trỏ
+
+  let activeCell = null;
+
+  function escapeHtml(str) {
+    return String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function buildHTML(cell) {
+    const room = cell.dataset.room || '-';
+    const date = cell.dataset.date || '-';
+    const start = cell.dataset.start || '-';
+    const end = cell.dataset.end || '-';
+    const purpose = cell.dataset.purpose || '-';
+    return `
+      <div><strong>Phòng:</strong> ${escapeHtml(room)}</div>
+      <div><strong>Ngày:</strong> ${escapeHtml(date)}</div>
+      <div><strong>Thời gian:</strong> ${escapeHtml(start)} - ${escapeHtml(end)}</div>
+      <div><strong>Mục đích:</strong> ${escapeHtml(purpose)}</div>
+    `;
+  }
+
+  // vị trí an toàn cho tooltip
+  function placeTooltip(clientX, clientY) {
+    tooltip.style.display = 'block';
+    tooltip.style.left = '0px';
+    tooltip.style.top = '0px';
+    const pad = 8;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    // đọc kích thước hiện tại
+    const rect = tooltip.getBoundingClientRect();
+    let left = clientX + 12;
+    let top = clientY + 12;
+
+    if (left + rect.width + pad > vw) left = clientX - rect.width - 12;
+    if (left < pad) left = pad;
+    if (top + rect.height + pad > vh) top = clientY - rect.height - 12;
+    if (top < pad) top = pad;
+
+    tooltip.style.left = (left + window.pageXOffset) + 'px';
+    tooltip.style.top = (top + window.pageYOffset) + 'px';
+  }
+
+  // Event delegation: lắng nghe trên container để ít phụ thuộc DOM động
+  const container = document.querySelector('.container') || document.body;
+
+  // pointerover fired when pointer enters element or its children
+  container.addEventListener('pointerover', (e) => {
+    const cell = e.target.closest && e.target.closest('.booked');
+    if (!cell) return;
+    activeCell = cell;
+    tooltip.innerHTML = buildHTML(cell);
+    placeTooltip(e.clientX, e.clientY);
+  });
+
+  container.addEventListener('pointermove', (e) => {
+    if (!activeCell) return;
+    // chỉ cập nhật vị trí nếu con trỏ còn trong một .booked
+    const under = document.elementFromPoint(e.clientX, e.clientY);
+    if (!under || !under.closest || !under.closest('.booked')) {
+      tooltip.style.display = 'none';
+      activeCell = null;
+      return;
+    }
+    placeTooltip(e.clientX, e.clientY);
+  });
+
+  // khi pointer rời .booked
+  container.addEventListener('pointerout', (e) => {
+    // nếu pointerout ra ngoài .booked thì ẩn
+    const related = e.relatedTarget;
+    if (!related || !related.closest || !related.closest('.booked')) {
+      tooltip.style.display = 'none';
+      activeCell = null;
+    }
+  });
+
+  // ẩn tooltip khi DOM thay đổi nhiều (ví dụ loadBookings rebuild)
+  const mo = new MutationObserver(() => {
+    tooltip.style.display = 'none';
+    activeCell = null;
+  });
+  mo.observe(container, { childList: true, subtree: true });
+
+  // ẩn khi cuộn
+  window.addEventListener('scroll', () => {
+    tooltip.style.display = 'none';
+    activeCell = null;
+  }, true);
+})();
+</script>
+
+<style>
+.booked:hover {
+    cursor: pointer; /* Gợi ý người dùng có thể bấm */
+}
+</style>
+
+</body>
+</html>

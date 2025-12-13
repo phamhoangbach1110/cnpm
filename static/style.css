@@ -1,0 +1,192 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f1f3f4;
+}
+
+/* Panel nổi chứa giao diện */
+.container {
+    max-width: 90%;
+    margin: auto;
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    overflow-x: auto;
+    position: relative;
+}
+
+.login-btn {
+    /* -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none; */
+
+    background-color: #0275d8;   /* xanh dương */
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    transition: 0.2s;
+}
+
+.login-btn:hover {
+    background-color: #025aa5;
+    transform: translateY(-1px);
+}
+
+.login-btn:active {
+    background-color: #014680;
+}
+
+/* nút đăng xuất */
+.logout-btn {
+    background-color: #d9534f;   /* đỏ nhẹ */
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    transition: 0.2s;
+}
+
+.logout-btn:hover {
+    background-color: #c9302c; /* đậm hơn khi hover */
+    transform: translateY(+1px)
+}
+
+.user-panel {
+    position: absolute;
+    top: 12px;          /* cách viền trên container */
+    right: 16px;        /* cách viền phải container */
+    font-size: 14px;
+    color: #333;
+    z-index: 50;
+}
+
+/* kiểu cho link */
+.user-panel a {
+    color: #2b6cb0; /* màu link (có thể đổi) */
+    text-decoration: none;
+    margin-left: 6px;
+}
+.user-panel a:hover {
+    text-decoration: underline;
+}
+
+.page-title {
+    text-align: center;
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    background: white;
+}
+
+th {
+    background-color: #0052cc;
+    color: white;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 4px;
+    text-align: center;
+}
+
+.time-slot:hover {
+    background-color: #eaf3ff;
+}
+
+.dragging {
+    background-color: #a0c4ff  ;
+}
+
+/* Popup */
+.popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.popup {
+    background: white;
+    padding: 20px;
+    width: 360px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+}
+
+.popup textarea {
+    width: 100%;
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.popup-buttons {
+    text-align: right;
+    margin-top: 10px;
+}
+
+.popup-buttons button {
+    padding: 6px 12px;
+    margin-left: 8px;
+}
+
+.booked {
+    background-color: #8FBC8F ;
+}
+.booked:hover {
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+.tooltip-box {
+    background: #ffffff;
+    padding: 8px 10px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    font-size: 13px;
+    border: 1px solid #ccc;
+    z-index: 1000;
+}
+
+.booked:hover {
+    cursor: pointer;
+    opacity: 0.9;
+}
+
+/* tránh inner element chặn pointer */
+.time-slot { 
+    position: relative; 
+    user-select: none; 
+}
+
+/* .time-slot * { 
+    pointer-events: none; 
+}  */
+/* nếu có nội dung con */

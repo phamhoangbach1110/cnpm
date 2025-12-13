@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Đăng nhập</title>
+  <link rel="stylesheet" href="/static/style.css?v=1.2" />
+  <style>
+    .login-box { 
+        max-width: 420px; 
+        margin: 80px auto; 
+        background:#fff; 
+        padding:20px; 
+        border-radius:8px; 
+        box-shadow:0 2px 12px rgba(0,0,0,0.1); 
+    }
+
+    .error { 
+        color: crimson; 
+        margin-bottom: 8px; 
+    }
+
+    .login-title {
+        text-align: center
+    }
+
+    /* CSS bổ sung cho phần đăng ký */
+    .register-link {
+        margin-top: 20px;
+        text-align: center;
+        font-size: 0.9em;
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+    }
+
+    .register-link a {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    .register-link a:hover {
+        text-decoration: underline;
+    }
+
+    .login-btn {
+        width: 100%;
+        padding: 10px;
+        cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2 class="login-title">Đăng nhập</h2>
+    
+    {% if error %}
+      <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="/login">
+      <div>
+        <label>Tên đăng nhập</label><br/>
+        <input name="username" required style="width: 100%; box-sizing: border-box;">
+      </div>
+      
+      <div style="margin-top:8px">
+        <label>Mật khẩu</label><br/>
+        <input name="password" type="password" required style="width: 100%; box-sizing: border-box;">
+      </div>
+
+      <div style="margin-top:12px">
+        <button type="submit" class="login-btn">Đăng nhập</button>
+      </div>
+    </form>
+
+    <div class="register-link">
+      Chưa có tài khoản? <a href="/register">Tạo tài khoản mới</a>
+    </div>
+  </div>
+</body>
+</html>
