@@ -1,81 +1,87 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <title>Đăng nhập</title>
-  <link rel="stylesheet" href="/static/style.css?v=1.2" />
-  <style>
-    .login-box { 
-        max-width: 420px; 
-        margin: 80px auto; 
-        background:#fff; 
-        padding:20px; 
-        border-radius:8px; 
-        box-shadow:0 2px 12px rgba(0,0,0,0.1); 
-    }
-
-    .error { 
-        color: crimson; 
-        margin-bottom: 8px; 
-    }
-
-    .login-title {
-        text-align: center
-    }
-
-    /* CSS bổ sung cho phần đăng ký */
-    .register-link {
-        margin-top: 20px;
-        text-align: center;
-        font-size: 0.9em;
-        border-top: 1px solid #eee;
-        padding-top: 15px;
-    }
-
-    .register-link a {
-        color: #007bff;
-        text-decoration: none;
-        font-weight: bold;
-    }
-
-    .register-link a:hover {
-        text-decoration: underline;
-    }
-
-    .login-btn {
-        width: 100%;
-        padding: 10px;
-        cursor: pointer;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - EduManager</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body>
-  <div class="login-box">
-    <h2 class="login-title">Đăng nhập</h2>
-    
-    {% if error %}
-      <div class="error">{{ error }}</div>
-    {% endif %}
+<body class="login-page">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <span>EduManager</span>
+            </div>
+            <h1>Chào mừng trở lại!</h1>
+            <p>Vui lòng đăng nhập để quản lý lớp học của bạn</p>
+        </div>
 
-    <form method="post" action="/login">
-      <div>
-        <label>Tên đăng nhập</label><br/>
-        <input name="username" required style="width: 100%; box-sizing: border-box;">
-      </div>
-      
-      <div style="margin-top:8px">
-        <label>Mật khẩu</label><br/>
-        <input name="password" type="password" required style="width: 100%; box-sizing: border-box;">
-      </div>
+        <div class="login-form">
+            <div class="form-group">
+                <label for="username"><i class="fas fa-user"></i> Tên đăng nhập</label>
+                <input type="text" id="username" placeholder="Nhập tài khoản của bạn..." required>
+            </div>
 
-      <div style="margin-top:12px">
-        <button type="submit" class="login-btn">Đăng nhập</button>
-      </div>
-    </form>
+            <div class="form-group">
+                <label for="password"><i class="fas fa-lock"></i> Mật khẩu</label>
+                <input type="password" id="password" placeholder="••••••••" required>
+            </div>
 
-    <div class="register-link">
-      Chưa có tài khoản? <a href="/register">Tạo tài khoản mới</a>
+            <button onclick="handleLogin()" class="btn-login">
+                <span>Đăng Nhập</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <div class="login-footer">
+            <div class="footer-links">
+                <a href="/forgot-password">Quên mật khẩu?</a>
+                <span class="divider">|</span>
+                <a href="/register">Đăng ký ngay</a>
+            </div>
+            <p class="contact-admin">Gặp sự cố? <a href="#">Liên hệ Quản trị viên</a></p>
+        </div>
     </div>
-  </div>
+
+    <script>
+        async function handleLogin() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            
+            // Kiểm tra đầu vào cơ bản
+            if (!u || !p) {
+                alert("Vui lòng điền đầy đủ tên đăng nhập và mật khẩu!");
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username: u, password: p})
+                });
+                
+                const data = await res.json();
+                if(data.status === "success") {
+                    // Nếu đăng nhập đúng, chuyển hướng đến trang quản lý
+                    window.location.href = "/dashboard";
+                } else {
+                    alert(data.message || "Sai tài khoản hoặc mật khẩu!");
+                }
+            } catch (error) {
+                console.error("Lỗi kết nối:", error);
+                alert("Không thể kết nối đến máy chủ!");
+            }
+        }
+
+        // Cho phép nhấn phím Enter để đăng nhập nhanh
+        document.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                handleLogin();
+            }
+        });
+    </script>
 </body>
 </html>
