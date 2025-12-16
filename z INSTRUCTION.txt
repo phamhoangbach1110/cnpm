@@ -1,0 +1,24 @@
+- Tải hết mọi thứ từ trên github về rồi lưu trong một thư mục
+- Cấu trúc thư mục:
+    R/
+    │── main.py 
+    |── create_admin.py           
+    │── templates/
+    │   └── index.html
+    |   └── login.html
+    │── static/
+    │   └── style.js      
+    └── database.db        
+- Mở thư mục trên bằng visual code
+- Tạo venv, chạy lệnh sau lên terminal
+    python -m venv venv
+- Kích hoạt venv: .\venv\Scripts\activate
+- Chạy lệnh sau vào terminal (nhớ phải cài pip): pip install fastapi uvicorn sqlalchemy jinja2
+    fastapi: backend chính
+    uvicorn: chạy server
+    sqlalchemy: làm việc với SQLite
+    jinja2: render HTML
+- Chạy server, chạy lệnh sau vào terminal: python -m uvicorn main:app --reload
+- Truy cập https://localhost:8000
+- Sau khi dùng xong ngắt server nhấn tổ hợp phím ctrl C
+- Tắt venv: deactivate
