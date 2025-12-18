@@ -2,225 +2,131 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Phòng Học - EduManager</title>
     <link rel="stylesheet" href="/static/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        /* CSS DÀNH RIÊNG CHO TRANG NÀY (ĐÃ TĂNG ĐỘ ƯU TIÊN CHO CÁC NÚT) */
+        :root { --primary: #4361ee; --success: #06d6a0; --warning: #ff9f1c; --danger: #ef233c; --dark: #2b2d42; }
         
-        /* Đảm bảo style chung của nút được áp dụng */
-        .room-actions button {
-            margin-left: 5px;
-            padding: 8px 12px;
-            font-size: 13px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            white-space: nowrap;
-        }
-        
-        /* Style cho các nút Đặt lịch, Sửa, Xóa */
-        .booking-btn {
-            background-color: #4cc9f0 !important; 
-            color: white !important;
-            box-shadow: 0 4px 8px rgba(76, 201, 240, 0.4);
-        }
-        .booking-btn:hover {
-            background-color: #3faad1 !important;
-            transform: translateY(-1px);
-        }
+        /* Badges */
+        .status-badge { padding: 6px 12px; border-radius: 30px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; text-transform: uppercase; }
+        .status-badge.available { background: rgba(6, 214, 160, 0.1); color: var(--success); border: 1px solid rgba(6, 214, 160, 0.2); }
+        .status-badge.maintenance { background: rgba(255, 159, 28, 0.1); color: var(--warning); border: 1px solid rgba(255, 159, 28, 0.2); }
+        .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .available .dot { background: var(--success); box-shadow: 0 0 0 2px rgba(6, 214, 160, 0.3); }
+        .maintenance .dot { background: var(--warning); box-shadow: 0 0 0 2px rgba(255, 159, 28, 0.3); }
 
-        .edit-btn { 
-            background-color: #ffc34d !important; 
-            color: #333 !important; 
-        }
-        .edit-btn:hover { 
-            background-color: #ffa500 !important; 
-            transform: translateY(-1px);
-        }
+        /* Buttons Premium */
+        .btn-premium { border: none; padding: 10px 18px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); font-size: 0.9rem; }
+        .btn-premium:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
+        .btn-blue { background: linear-gradient(135deg, #4361ee, #3a0ca3); color: white; }
+        .btn-purple { background: linear-gradient(135deg, #7209b7, #560bad); color: white; }
+        .btn-white { background: white; color: var(--dark); border: 1px solid #eee; }
+        .btn-yellow { background: linear-gradient(135deg, #ffd166, #ffb703); color: #333; }
+        .btn-red { background: linear-gradient(135deg, #ef233c, #d90429); color: white; }
+        .btn-disabled { background: #e0e0e0; color: #999; cursor: not-allowed; box-shadow: none; }
 
-        .delete-btn { 
-            background-color: #ef233c !important; 
-            color: white !important; 
-        }
-        .delete-btn:hover { 
-            background-color: #d6182f !important; 
-            transform: translateY(-1px);
-        }
+        /* --- BỘ LỌC (MỚI) --- */
+        .filter-group { display: flex; gap: 10px; background: #f1f3f9; padding: 5px; border-radius: 12px; }
+        .filter-btn { border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: 0.2s; color: #666; background: transparent; }
+        .filter-btn:hover { color: var(--primary); background: rgba(255,255,255,0.5); }
+        .filter-btn.active { background: white; color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
-        /* Các style khác giữ nguyên */
-        .btn-detail {
-            background-color: #e5e5e5;
-            color: #4b5563;
-            box-shadow: none;
-            font-weight: 500;
-            padding: 6px 10px;
-        }
-        .btn-detail:hover {
-            background-color: #d4d4d4;
-        }
-
-        .detail-info {
-            background-color: #f7f9fc;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 10px;
-            border-left: 5px solid #0D8ABC;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        .detail-info p { margin: 5px 0; font-size: 14px; }
-        .detail-info strong { color: #333; }
-        .modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
-        .modal-content { background-color: #fff; margin: 10% auto; padding: 25px; border-radius: 8px; width: 90%; max-width: 500px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        .close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;}
-        .close-btn:hover { color: #000; }
-        .modal-content input[type="text"], .modal-content input[type="number"], .modal-content select {
-            width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;
-        }
-        /* Khối CSS mới để điều chỉnh nút Submit trong Modal */
-.modal-content button[type="submit"] {
-    /* Tối ưu hóa màu chữ, màu nền cho nổi bật hơn */
-    background-color: var(--primary-color); /* Sử dụng màu xanh chính */
-    color: white;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-top: 20px;
-    font-size: 16px;
-    font-weight: 700; /* Làm chữ đậm hơn */
-    transition: background-color 0.2s;
-    width: 100%; /* Kéo dài hết chiều rộng */
-}
-.modal-content button[type="submit"]:hover {
-    background-color: var(--secondary-color); /* Màu tối hơn khi hover */
-}
-
-/* KHỐI MỚI: CĂN GIỮA NÚT SUBMIT TRONG FORM */
-#roomForm {
-    text-align: center; /* Căn giữa tất cả các phần tử nội tuyến (ví dụ: nút bấm) */
-}
-#roomForm button[type="submit"] {
-    width: 80%; /* Giảm chiều rộng để nút có thể căn giữa */
-    display: inline-block; /* Quan trọng: Biến nút thành phần tử nội tuyến-khối để text-align: center hoạt động */
-}
+        /* Modal */
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(43, 45, 66, 0.6); backdrop-filter: blur(4px); }
+        .modal-content { background: white; margin: 8% auto; padding: 30px; border-radius: 20px; width: 450px; box-shadow: 0 25px 50px rgba(0,0,0,0.25); }
+        .modal-content input, .modal-content select { width: 100%; padding: 12px; margin: 8px 0 20px; border: 2px solid #f0f0f0; border-radius: 10px; font-size: 15px; box-sizing: border-box; }
+        .submit-btn { width: 100%; padding: 14px; background: var(--success); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="container">
         <aside class="sidebar">
-            <div class="logo">
-                <i class="fas fa-graduation-cap"></i>
-                <span>EduManager</span>
-            </div>
+            <div class="logo"><i class="fas fa-graduation-cap"></i><span>EduManager</span></div>
             <nav>
                 <ul>
                     <li><a href="/dashboard"><i class="fas fa-th-large"></i> Tổng quan</a></li>
-                    <li><a href="#"><i class="fas fa-users"></i> Sinh viên</a></li>
-                    
-                    {% if role == 'admin' %}
-                    <li class="admin-only">
-                        <a href="/room-management" class="active"><i class="fas fa-door-open"></i> Quản lý phòng học</a>
-                    </li>
-                    <li>
-                        <a href="#"><i class="fas fa-user-shield"></i> Quản lý người dùng</a>
-                    </li>
+                    {% if role == 'admin' or role == 'teacher' %}
+                    <li><a href="/booking-scheduler"><i class="fas fa-calendar-alt"></i> Lịch đặt phòng</a></li>
+                    <li><a href="/room-management" class="active"><i class="fas fa-door-open"></i> Quản lý phòng học</a></li>
+                     <li><a href="/profile"><i class="fas fa-user-shield"></i> Quản lý người dùng</a></li>
                     {% endif %}
-
-                    <li><a href="#"><i class="fas fa-clipboard-list"></i> Điểm danh</a></li>
-                    <li><a href="#"><i class="fas fa-file-alt"></i> Báo cáo</a></li>
-                    <li class="logout-item">
-                        <a href="/logout" style="color: var(--danger);">
-                        <i class="fas fa-sign-out-alt"></i> 
-                            <span>Đăng xuất</span>
-                        </a>
-                    </li>
-                    <li class="separator"></li>
-                    <li><a href="#"><i class="fas fa-cog"></i> Cài đặt</a></li>
+                    <li class="logout-item"><a href="/logout" style="color: #ef233c;">Đăng xuất</a></li>
                 </ul>
             </nav>
         </aside>
+        
         <main class="main-content">
             <header>
-                <div class="search-bar">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Tìm kiếm phòng học...">
-                </div>
+                <div class="search-bar"><i class="fas fa-search"></i><input type="text" id="searchInput" onkeyup="searchRooms()" placeholder="Tìm theo tên phòng, thiết bị..."></div>
                 <div class="user-profile">
-                    <div class="notif">
-                        <i class="fas fa-bell"></i>
-                        <span class="badge">3</span>
-                    </div>
-                    <div class="info">
-                        <strong>{{ username }}</strong>
-                        <span>{{ 'Quản trị viên' if role == 'admin' else 'Giáo viên' }}</span>
-                        <a href="/logout" style="display:block; font-size: 11px; color: var(--danger); text-decoration: none;">Đăng xuất</a>
-                    </div>
-                    <img src="https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff" alt="Avatar">
+                    <div class="info"><strong>{{ full_name if full_name else username }}</strong> ({{ role }})</div>
+                    
+                    <img src="https://ui-avatars.com/api/?name={{ full_name if full_name else username }}&background=4361ee&color=fff&size=128" alt="Avatar">
                 </div>
             </header>
 
             <section class="data-section">
-                <div class="section-header" style="flex-direction: column; align-items: flex-start; gap: 15px;">
-                    <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                        <h2>Quản lý Tài nguyên Phòng học</h2>
-                        <button class="btn-add" onclick="showCreateRoomModal()"><i class="fas fa-plus"></i> Thêm phòng</button>
+                <div class="section-header" style="justify-content: space-between; display: flex; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <h2 style="margin:0;">Phòng học</h2>
+                        
+                        <div class="filter-group">
+                            <button class="filter-btn active" onclick="filterStatus('all', this)">Tất cả</button>
+                            <button class="filter-btn" onclick="filterStatus('Available', this)">Hoạt động</button>
+                            <button class="filter-btn" onclick="filterStatus('Maintenance', this)">Bảo trì</button>
+                        </div>
                     </div>
-                    
-                    <div class="filter-container" style="display: flex; gap: 12px; background: #f8f9fa; padding: 8px 15px; border-radius: 8px; width: 100%; overflow-x: auto; box-sizing: border-box;">
-                        <span style="font-weight: 600; align-self: center; white-space: nowrap;">Bộ lọc:</span>
-                        <button class="btn-filter active" onclick="filterRooms('all', this)" style="border: 1px solid #ddd;">Tất cả</button>
-                        <button class="btn-filter" onclick="filterRooms('Available', this)" style="border-color: #06d6a0; color: #06d6a0;">Sẵn sàng</button>
-                        <button class="btn-filter" onclick="filterRooms('Occupied', this)" style="border-color: #ef233c; color: #ef233c;">Đang sử dụng</button>
-                        <button class="btn-filter" onclick="filterRooms('Maintenance', this)" style="border-color: #ffd166; color: #ffd166;">Bảo trì</button>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-premium btn-purple" onclick="window.location.href='/booking-scheduler'"><i class="fas fa-calendar-week"></i> Xem Lịch Tổng</button>
+                        {% if role == 'admin' %}
+                        <button class="btn-premium btn-blue" onclick="showCreateRoomModal()"><i class="fas fa-plus"></i> Thêm phòng</button>
+                        {% endif %}
                     </div>
                 </div>
+                
                 <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="width: 10%;">ID</th>
-                                <th style="width: 25%;">Tên phòng</th>
-                                <th style="width: 15%;">Sức chứa</th>
-                                <th style="width: 20%;">Thiết bị</th>
-                                <th style="width: 15%;">Trạng thái</th>
-                                <th style="width: 15%;">Hành động</th>
-                            </tr>
-                        </thead>
+                    <table id="roomTable">
+                        <thead><tr><th>ID</th><th>Tên phòng</th><th>Sức chứa</th><th>Thiết bị</th><th>Trạng thái</th><th>Hành động</th></tr></thead>
                         <tbody>
                             {% for room in classrooms %}
-                            <tr>
-                                <td><span class="id-tag">#{{ room.id }}</span></td>
-                                <td><strong>{{ room.room_name }}</strong></td>
+                            <tr class="room-row" data-status="{{ room.status }}">
+                                <td><strong>#{{ room.id }}</strong></td>
+                                <td><span style="font-size: 1.05rem; font-weight: 700; color: var(--dark);">{{ room.room_name }}</span></td>
                                 <td>{{ room.capacity }}</td>
                                 <td>{{ room.equipment }}</td>
-                                <td><span class="status {{ room.status | lower }}">{{ room.status }}</span></td>
-                                <td class="actions room-actions">
-                                    <button class="btn-detail" onclick="toggleDetails(this, {{ room.id }})"><i class="fas fa-info-circle"></i> Chi tiết</button>
+                                <td>
+                                    {% if room.status == 'Maintenance' %}
+                                        <span class="status-badge maintenance"><span class="dot"></span> Bảo trì</span>
+                                    {% else %}
+                                        <span class="status-badge available"><span class="dot"></span> Hoạt động</span>
+                                    {% endif %}
+                                </td>
+                                <td class="actions">
+                                    <button class="btn-premium btn-white" style="padding: 6px 12px; font-size: 0.8rem;" onclick="toggleDetails(this, {{ room.id }})">Chi tiết</button>
                                 </td>
                             </tr>
                             
-                            <tr class="room-details-row" id="details-row-{{ room.id }}" style="display: none;">
-                                <td colspan="6" style="padding: 0;"> 
-                                    <div class="detail-info" id="details-{{ room.id }}">
-                                        <h4>Trạng thái chi tiết: {{ room.room_name }}</h4>
-                                        <p><strong>Sức chứa tối đa:</strong> {{ room.capacity }} chỗ.</p>
-                                        <p><strong>Thiết bị:</strong> {{ room.equipment }}.</p>
-                                        <p><strong>Tình trạng hiện tại:</strong> <span style="color: {% if room.status == 'Available' %}#06d6a0{% elif room.status == 'Occupied' %}#ef233c{% else %}#ffd166{% endif %};">{{ room.status }}</span>.</p>
-                                        
-                                        <div style="margin-top: 15px; display: flex; gap: 10px;">
-                                            <button class="booking-btn" 
-                                                     onclick="window.location.href='/booking-scheduler?room_id={{ room.id }}'">
-                                                     <i class="fas fa-calendar-alt"></i> Đặt lịch/Sử dụng
-                                            </button>
-                                            
-                                            <button class="edit-btn" onclick="showEditRoomModal({{ room.id }}, '{{ room.room_name }}', {{ room.capacity }}, '{{ room.equipment }}', '{{ room.status }}')"><i class="fas fa-pen"></i> Sửa thông tin</button>
-                                            
-                                            <button class="delete-btn" onclick="deleteRoom({{ room.id }}, '{{ room.room_name }}')"><i class="fas fa-trash"></i> Xóa phòng</button>
+                            <tr id="details-row-{{ room.id }}" class="room-details-row" style="display: none; background: #f8f9fc;">
+                                <td colspan="6" style="padding: 20px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div>
+                                            <h4 style="margin: 0 0 5px 0; color: var(--primary);">{{ room.room_name }}</h4>
+                                            <p style="margin: 0; color: #666; font-size: 0.9rem;">{{ room.equipment }} • {{ room.capacity }} chỗ ngồi</p>
+                                        </div>
+                                        <div style="display: flex; gap: 10px;">
+                                            {% if room.status == 'Maintenance' %}
+                                                <button class="btn-premium btn-disabled" disabled><i class="fas fa-ban"></i> Đang bảo trì</button>
+                                            {% else %}
+                                                <button class="btn-premium btn-blue" onclick="window.location.href='/booking-scheduler?room_id={{ room.id }}'"><i class="fas fa-calendar-check"></i> Đặt lịch ngay</button>
+                                            {% endif %}
+
+                                            {% if role == 'admin' %}
+                                            <button class="btn-premium btn-yellow" onclick="showEditRoomModal({{ room.id }}, '{{ room.room_name }}', {{ room.capacity }}, '{{ room.equipment }}', '{{ room.status }}')"><i class="fas fa-pen"></i> Sửa</button>
+                                            <button class="btn-premium btn-red" onclick="deleteRoom({{ room.id }}, '{{ room.room_name }}')"><i class="fas fa-trash"></i> Xóa</button>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </td>
@@ -235,323 +141,165 @@
 
     <div id="roomModal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h2 id="modalTitle">Thêm Phòng Học Mới</h2>
+            <span onclick="closeModal()" style="float:right; cursor:pointer; font-size:24px; color: #999;">&times;</span>
+            <h2 id="modalTitle">Thông Tin Phòng</h2>
             <form id="roomForm">
                 <input type="hidden" id="roomId" name="room_id">
-                
-                <label for="roomName">Tên phòng:</label>
-                <input type="text" id="roomName" name="room_name" required>
-
-                <label for="roomCapacity">Sức chứa:</label>
-                <input type="number" id="roomCapacity" name="capacity" required min="10">
-
-                <label for="roomEquipment">Thiết bị (ngăn cách bằng dấu phẩy):</label>
-                <input type="text" id="roomEquipment" name="equipment" placeholder="Máy chiếu, máy lạnh, loa" required>
-
-                <div id="statusField" style="display:none;">
-                    <label for="roomStatus">Trạng thái:</label>
-                    <select id="roomStatus" name="status">
-                        <option value="Available">Available (Sẵn sàng)</option>
-                        <option value="Occupied">Occupied (Đang sử dụng)</option>
-                        <option value="Maintenance">Maintenance (Bảo trì)</option>
-                    </select>
-                </div>
-
-                <button type="submit" id="submitBtn">Thêm phòng</button>
+                <label>Tên phòng:</label><input type="text" id="roomName" name="room_name" required>
+                <label>Sức chứa:</label><input type="number" id="roomCapacity" name="capacity" required>
+                <label>Thiết bị:</label><input type="text" id="roomEquipment" name="equipment" required>
+                <label>Trạng thái:</label>
+                <select id="roomStatus" name="status">
+                    <option value="Available">🟢 Hoạt động</option>
+                    <option value="Maintenance">🟠 Bảo trì</option>
+                </select>
+                <button type="submit" id="submitBtn" class="submit-btn">Lưu lại</button>
             </form>
         </div>
     </div>
-    
-   <div id="bookingModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" onclick="closeBookingModal()">&times;</span>
-        <h2 id="bookingModalTitle">ĐẶT LỊCH PHÒNG HỌC</h2>
-        <form id="bookingForm">
-            <input type="hidden" id="bookingRoomId" name="room_id">
-            <input type="hidden" id="durationDisplay" name="duration_display"> <p style="margin-bottom: 15px;">**Người đặt:** <strong style="color: var(--primary-color);">{{ username }}</strong> (Admin)</p>
 
-            <label for="roomInfo">Phòng đang thao tác:</label>
-            <input type="text" id="roomInfo" value="" disabled style="font-weight: bold; background: #f0f0f0;">
+    <script>
+        // === HÀM LỌC TRẠNG THÁI (MỚI) ===
+        function filterStatus(status, btn) {
+            // 1. Cập nhật nút active
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
 
-            <label for="startDate">Thời gian bắt đầu:</label>
-            <input type="datetime-local" id="startDate" name="start_time" required>
-
-            <label for="durationSelect">Thời lượng sử dụng:</label>
-            <select id="durationSelect" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
-                <option value="" disabled selected>--- Chọn thời lượng ---</option>
-                <option value="1">1 Giờ</option>
-                <option value="1.5">1 Giờ 30 Phút</option>
-                <option value="2">2 Giờ</option>
-                <option value="2.5">2 Giờ 30 Phút</option>
-                <option value="3">3 Giờ</option>
-                <option value="3.75">3 Giờ 45 Phút</option>
-                <option value="4">4 Giờ</option>
-            </select>
+            // 2. Lọc bảng
+            const rows = document.querySelectorAll('.room-row');
+            const details = document.querySelectorAll('.room-details-row');
             
-            <label for="newStatus" style="margin-top: 15px;">Trạng thái phòng sau khi đặt:</label>
-            <input type="text" value="Đang sử dụng (Occupied)" disabled style="background: #e6fffa; color: #06d6a0; font-weight: 700;">
+            // Ẩn tất cả dòng chi tiết để tránh lỗi giao diện
+            details.forEach(d => d.style.display = 'none');
+            // Reset nút "Chi tiết" về trạng thái đóng
+            document.querySelectorAll('.actions button').forEach(b => b.innerText = 'Chi tiết');
 
-            <button type="submit" id="bookingSubmitBtn" style="background-color: #4cc9f0; padding: 12px 20px; font-size: 16px; margin-top: 25px; border-radius: 8px;">
-                Xác nhận Đặt lịch
-            </button>
-        </form>
-    </div>
-</div>
-
-   <script>
-    // === KHAI BÁO BIẾN ===
-    const modal = document.getElementById('roomModal');
-    const form = document.getElementById('roomForm');
-    const modalTitle = document.getElementById('modalTitle');
-    const submitBtn = document.getElementById('submitBtn');
-    const statusField = document.getElementById('statusField');
-    let currentAction = '';
-    
-    // KHAI BÁO BIẾN MỚI CHO BOOKING MODAL
-    const bookingModal = document.getElementById('bookingModal');
-    const bookingForm = document.getElementById('bookingForm');
-    const bookingModalTitle = document.getElementById('bookingModalTitle');
-
-    // KHAI BÁO BIẾN MỚI CHO THỜI LƯỢNG
-    const durationSelect = document.getElementById('durationSelect'); // Biến mới
-
-    // =======================================================
-    // HÀM CHUYỂN ĐỔI GIÁ TRỊ GIỜ LẺ
-    // =======================================================
-    function getDurationDisplay(value) {
-        if (!value) return '';
-        const numValue = parseFloat(value);
-        if (isNaN(numValue)) return value;
-        
-        const hours = Math.floor(numValue);
-        const minutes = Math.round((numValue - hours) * 60);
-        
-        let display = '';
-        if (hours > 0) {
-            display += `${hours} Giờ`;
+            rows.forEach(row => {
+                const roomStatus = row.getAttribute('data-status'); // Lấy status từ data attribute
+                if (status === 'all' || roomStatus === status) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
         }
-        if (minutes > 0) {
-            if (hours > 0) display += ' ';
-            display += `${minutes} Phút`;
+
+        // === HÀM TÌM KIẾM (Đã tích hợp cùng bộ lọc) ===
+        // === HÀM TÌM KIẾM NÂNG CẤP (Tên phòng + Thiết bị) ===
+        function searchRooms() {
+            var input = document.getElementById("searchInput");
+            var filter = input.value.toUpperCase();
+            var rows = document.querySelectorAll('.room-row');
+            
+            // Ẩn các dòng chi tiết đang mở để tránh rối mắt khi tìm kiếm
+            document.querySelectorAll('.room-details-row').forEach(d => d.style.display = 'none');
+            document.querySelectorAll('.actions button').forEach(b => b.innerText = 'Chi tiết');
+
+            rows.forEach(row => {
+                // Lấy cột Tên phòng (vị trí index 1)
+                var nameCol = row.getElementsByTagName("td")[1];
+                // Lấy cột Thiết bị (vị trí index 3)
+                var equipCol = row.getElementsByTagName("td")[3];
+
+                if (nameCol && equipCol) {
+                    var nameTxt = nameCol.textContent || nameCol.innerText;
+                    var equipTxt = equipCol.textContent || equipCol.innerText;
+
+                    // Kiểm tra nếu Tên phòng HOẶC Thiết bị chứa từ khóa tìm kiếm
+                    if (nameTxt.toUpperCase().indexOf(filter) > -1 || equipTxt.toUpperCase().indexOf(filter) > -1) {
+                        row.style.display = "";
+                    } else {
+                        row.style.display = "none";
+                    }
+                }       
+            });
         }
-        return display.trim() || `${numValue} Giờ`;
-    }
-    
-    // =======================================================
-    // HÀM XỬ LÝ LỌC
-    // =======================================================
-    function filterRooms(status, btn) {
-        // ... (Logic filterRooms giữ nguyên)
-        document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
 
-        const rows = document.querySelectorAll('.table-container tbody tr');
+        const modal = document.getElementById('roomModal');
+        const form = document.getElementById('roomForm');
+        let currentAction = '';
+
+        function closeModal() { modal.style.display = 'none'; form.reset(); }
         
-        rows.forEach(row => {
-            if (row.classList.contains('room-details-row')) {
-                row.style.display = 'none'; 
-                return;
-            }
+        function showCreateRoomModal() {
+            document.getElementById('modalTitle').textContent = 'Thêm Phòng Mới';
+            currentAction = 'create';
+            form.action = '/api/rooms/create';
+            modal.style.display = 'block';
+        }
 
-            const statusElement = row.querySelector('.status');
-            if (!statusElement) return;
+        function showEditRoomModal(id, name, cap, eq, stat) {
+            document.getElementById('modalTitle').textContent = 'Sửa Phòng';
+            currentAction = 'update';
+            form.action = '/api/rooms/update';
+            document.getElementById('roomId').value = id;
+            document.getElementById('roomName').value = name;
+            document.getElementById('roomCapacity').value = cap;
+            document.getElementById('roomEquipment').value = eq;
+            document.getElementById('roomStatus').value = stat;
+            modal.style.display = 'block';
+        }
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(form).entries());
+            data.capacity = parseInt(data.capacity);
+            if(currentAction === 'update') data.room_id = parseInt(data.room_id);
             
-            const rowStatus = statusElement.textContent.trim(); 
+            const res = await fetch(form.action, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+            const result = await res.json();
+            if(result.status === 'success') { 
+                Swal.fire({ title: 'Thành công!', text: result.message, icon: 'success', confirmButtonColor: '#06d6a0' }).then(() => window.location.reload()); 
+            } else { Swal.fire('Lỗi', result.message, 'error'); }
+        };
+
+        function toggleDetails(btn, id) {
+            const row = document.getElementById('details-row-' + id);
+            const isHidden = row.style.display === 'none';
             
-            if (status === 'all' || rowStatus === status) {
+            // Đóng tất cả các dòng khác trước khi mở (để gọn gàng)
+            document.querySelectorAll('.room-details-row').forEach(d => d.style.display = 'none');
+            document.querySelectorAll('.actions button').forEach(b => b.innerText = 'Chi tiết');
+
+            if(isHidden) {
                 row.style.display = 'table-row';
+                btn.innerText = 'Đóng';
             } else {
                 row.style.display = 'none';
+                btn.innerText = 'Chi tiết';
+            }
+        }
+
+        async function deleteRoom(id, name) {
+            Swal.fire({
+                title: `Xóa ${name}?`, text: "Không thể hoàn tác!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef233c', confirmButtonText: 'Xóa', cancelButtonText: 'Hủy'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    const res = await fetch('/api/rooms/delete', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({room_id: id}) });
+                    const d = await res.json();
+                    if(d.status==='success') Swal.fire('Đã xóa!', '', 'success').then(()=>window.location.reload());
+                    else Swal.fire('Lỗi', d.message, 'error');
+                }
+            });
+        }
+    </script>
+    <script>
+        // Khi trang tải xong, kiểm tra xem có yêu cầu lọc không
+        window.addEventListener('DOMContentLoaded', (event) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const filterParam = urlParams.get('filter'); // Lấy giá trị 'Available' từ URL
+
+            if (filterParam) {
+                // Tìm nút bấm tương ứng với bộ lọc này (Nút "Hoạt động")
+                // filterStatus('Available', this) -> tìm trong onclick
+                const btnToClick = document.querySelector(`button[onclick*="${filterParam}"]`);
+                
+                if (btnToClick) {
+                    // Tự động kích hoạt hành động lọc
+                    filterStatus(filterParam, btnToClick);
+                }
             }
         });
-    }
-    
-    // =======================================================
-    // HÀM XỬ LÝ MODAL CHUNG (Thêm/Sửa)
-    // =======================================================
-    function closeModal() {
-        modal.style.display = 'none';
-        form.reset();
-        statusField.style.display = 'none';
-    }
-
-    function showCreateRoomModal() {
-        modalTitle.textContent = 'Thêm Phòng Học Mới';
-        submitBtn.textContent = 'Thêm phòng';
-        currentAction = 'create';
-        form.action = '/api/rooms/create';
-        document.getElementById('roomId').value = '';
-        statusField.style.display = 'none';
-        modal.style.display = 'block';
-    }
-
-    function showEditRoomModal(id, name, capacity, equipment, status) {
-        modalTitle.textContent = `Chỉnh sửa phòng: ${name}`;
-        submitBtn.textContent = 'Cập nhật';
-        currentAction = 'update';
-        form.action = '/api/rooms/update';
-        
-        document.getElementById('roomId').value = id;
-        document.getElementById('roomName').value = name;
-        document.getElementById('roomCapacity').value = capacity;
-        document.getElementById('roomEquipment').value = equipment;
-        document.getElementById('roomStatus').value = status;
-        
-        statusField.style.display = 'block';
-        modal.style.display = 'block';
-    }
-    
-    // =======================================================
-    // HÀM XỬ LÝ ĐẶT LỊCH (BOOKING) - ĐÃ CẬP NHẬT LOGIC
-    // =======================================================
-
-    function closeBookingModal() {
-        bookingModal.style.display = 'none';
-        bookingForm.reset();
-    }
-
-    function showBookingModal(id, name, status) {
-        if (status !== 'Available') {
-            alert(`Phòng ${name} hiện đang ở trạng thái ${status}. Chỉ có thể đặt lịch cho phòng đang Sẵn sàng.`);
-            return; 
-        }
-
-        bookingModalTitle.textContent = `ĐẶT LỊCH PHÒNG: ${name}`;
-        document.getElementById('bookingRoomId').value = id;
-        document.getElementById('roomInfo').value = name; // <-- Dùng roomInfo cho Modal HTML mới
-        
-        // Đặt ngày giờ bắt đầu mặc định là ngay bây giờ
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-
-        document.getElementById('startDate').value = `${year}-${month}-${day}T${hours}:${minutes}`;
-
-        durationSelect.value = "1"; // Mặc định 1 giờ
-
-        bookingModal.style.display = 'block';
-    }
-
-    // Xử lý khi Submit form Đặt lịch
-    bookingForm.onsubmit = async (e) => {
-        e.preventDefault();
-        
-        const durationValue = durationSelect.value;
-        if (!durationValue) {
-            alert("Vui lòng chọn thời lượng sử dụng.");
-            return;
-        }
-        
-        const formData = new FormData(bookingForm);
-        const data = Object.fromEntries(formData.entries());
-        
-        data.room_id = parseInt(data.room_id);
-        
-        // Gán cả giá trị số giờ và giá trị hiển thị trước khi gửi
-        data.duration_hours = durationValue; 
-        data.duration_display = getDurationDisplay(parseFloat(durationValue)); 
-
-        // Gửi yêu cầu đặt lịch đến API mới
-        const response = await fetch('/api/bookings/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
-        
-        if (result.status === 'success') {
-            // Thông báo thành công chi tiết hơn
-            alert(`✅ Đặt lịch thành công! Phòng ${document.getElementById('roomInfo').value} đã được đặt cho ${data.duration_display}.`); 
-            closeBookingModal();
-            window.location.reload(); 
-        } else {
-            alert('❌ Lỗi đặt lịch: ' + result.message);
-        }
-    };
-
-    // Hàm updateRoomStatus cũ (không cần thay đổi)
-    function updateRoomStatus(data) {
-        // Hàm này sẽ sử dụng API /api/rooms/update
-        // ...
-    }
-
-
-    // =======================================================
-    // HÀM XỬ LÝ CHÍNH (TOGGLE DETAILS VÀ XÓA) - Giữ nguyên
-    // =======================================================
-
-    function toggleDetails(btn, roomId) {
-        const detailsRow = document.getElementById(`details-row-${roomId}`);
-        const isVisible = detailsRow.style.display === 'table-row';
-
-        if (isVisible) {
-            detailsRow.style.display = 'none';
-            btn.innerHTML = '<i class="fas fa-info-circle"></i> Chi tiết';
-        } else {
-            detailsRow.style.display = 'table-row';
-            btn.innerHTML = '<i class="fas fa-times-circle"></i> Đóng';
-        }
-    }
-
-    form.onsubmit = async (e) => {
-        e.preventDefault();
-        
-        const url = form.action;
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-
-        data.capacity = parseInt(data.capacity);
-
-        if(currentAction === 'update') {
-            data.room_id = parseInt(data.room_id);
-        }
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
-        
-        if (result.status === 'success') {
-            alert(result.message || 'Thao tác thành công!');
-            closeModal();
-            window.location.reload();
-        } else {
-            alert('Lỗi: ' + result.message);
-        }
-    };
-
-    async function deleteRoom(roomId, roomName) {
-        if (!confirm(`Bạn có chắc chắn muốn xóa phòng ${roomName} này không?`)) {
-            return;
-        }
-
-        const response = await fetch('/api/rooms/delete', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ room_id: roomId })
-        });
-        
-        const result = await response.json();
-
-        if (result.status === 'success') {
-            alert(result.message || 'Xóa phòng học thành công.');
-            window.location.reload(); 
-        } else {
-            alert('Lỗi: ' + result.message);
-        }
-    }
-</script>
+    </script>
 </body>
 </html>
