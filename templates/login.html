@@ -6,6 +6,7 @@
     <title>Đăng nhập - EduManager</title>
     <link rel="stylesheet" href="/static/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="login-page">
     <div class="login-card">
@@ -15,13 +16,13 @@
                 <span>EduManager</span>
             </div>
             <h1>Chào mừng trở lại!</h1>
-            <p>Vui lòng đăng nhập để quản lý lớp học của bạn</p>
+            <p>Vui lòng đăng nhập để vào hệ thống</p>
         </div>
 
         <div class="login-form">
             <div class="form-group">
                 <label for="username"><i class="fas fa-user"></i> Tên đăng nhập</label>
-                <input type="text" id="username" placeholder="Nhập tài khoản của bạn..." required>
+                <input type="text" id="username" placeholder="Nhập tài khoản..." required>
             </div>
 
             <div class="form-group">
@@ -39,9 +40,9 @@
             <div class="footer-links">
                 <a href="/forgot-password">Quên mật khẩu?</a>
                 <span class="divider">|</span>
-                <a href="/register">Đăng ký ngay</a>
+                <a href="/register">Đăng ký giáo viên</a>
             </div>
-            <p class="contact-admin">Gặp sự cố? <a href="#">Liên hệ Quản trị viên</a></p>
+            
         </div>
     </div>
 
@@ -50,9 +51,13 @@
             const u = document.getElementById('username').value;
             const p = document.getElementById('password').value;
             
-            // Kiểm tra đầu vào cơ bản
             if (!u || !p) {
-                alert("Vui lòng điền đầy đủ tên đăng nhập và mật khẩu!");
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Thiếu thông tin',
+                    text: 'Vui lòng điền đầy đủ tên đăng nhập và mật khẩu!',
+                    confirmButtonColor: '#4361ee'
+                });
                 return;
             }
 
@@ -65,22 +70,37 @@
                 
                 const data = await res.json();
                 if(data.status === "success") {
-                    // Nếu đăng nhập đúng, chuyển hướng đến trang quản lý
-                    window.location.href = "/dashboard";
+                    // Thông báo thành công đẹp mắt rồi mới chuyển trang
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Đăng nhập thành công!',
+                        text: 'Đang chuyển hướng vào hệ thống...',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = "/dashboard";
+                    });
                 } else {
-                    alert(data.message || "Sai tài khoản hoặc mật khẩu!");
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Đăng nhập thất bại',
+                        text: data.message || "Sai tài khoản hoặc mật khẩu!",
+                        confirmButtonColor: '#ef233c'
+                    });
                 }
             } catch (error) {
                 console.error("Lỗi kết nối:", error);
-                alert("Không thể kết nối đến máy chủ!");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi kết nối',
+                    text: "Không thể kết nối đến máy chủ!",
+                    confirmButtonColor: '#ef233c'
+                });
             }
         }
 
-        // Cho phép nhấn phím Enter để đăng nhập nhanh
         document.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                handleLogin();
-            }
+            if (e.key === 'Enter') handleLogin();
         });
     </script>
 </body>

@@ -5,19 +5,28 @@
     <title>Đăng ký tài khoản - EduManager</title>
     <link rel="stylesheet" href="/static/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body.login-page {
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;
+            background: linear-gradient(135deg, #f6f8fb 0%, #e9effd 100%);
+        }
+    </style>
 </head>
 <body class="login-page">
     <div class="login-card">
         <div class="login-header">
-            <div class="logo">
-                <i class="fas fa-user-plus"></i>
-                <span>EduManager</span>
-            </div>
-            <h2>Tạo Tài Khoản Mới</h2>
-            <p>Vui lòng điền đầy đủ thông tin bảo mật</p>
+            <div class="logo"><i class="fas fa-user-plus"></i><span>EduManager</span></div>
+            <h2>Đăng Ký Giáo Viên</h2>
+            <p>Dành cho cán bộ giảng dạy</p>
         </div>
         
         <div class="login-form">
+            <div class="form-group">
+                <label><i class="fas fa-id-card"></i> Họ và tên</label>
+                <input type="text" id="reg-fullname" placeholder="Nhập họ tên đầy đủ (VD: Nguyễn Văn A)" required>
+            </div>
+
             <div class="form-group">
                 <label><i class="fas fa-user"></i> Tên đăng nhập</label>
                 <input type="text" id="reg-user" placeholder="Ví dụ: giaovien01">
@@ -25,7 +34,7 @@
 
             <div class="form-group">
                 <label><i class="fas fa-envelope"></i> Email</label>
-                <input type="email" id="reg-email" placeholder="email@vi-du.com">
+                <input type="email" id="reg-email" placeholder="email@truong.edu.vn">
             </div>
 
             <div class="form-group">
@@ -33,22 +42,16 @@
                 <input type="text" id="reg-phone" placeholder="09xxxxxxx">
             </div>
 
-            <div class="form-group">
-                <label><i class="fas fa-user-shield"></i> Loại tài khoản</label>
-                <select id="reg-role" onchange="toggleAdminCode()" style="width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid #edf2f7; outline: none;">
-                    <option value="student">Sinh viên (Người dùng thường)</option>
-                    <option value="admin">Giáo viên (Quản trị viên)</option>
-                </select>
-            </div>
+            <input type="hidden" id="reg-role" value="teacher">
 
-            <div id="admin-code-area" class="form-group" style="display: none;">
-                <label style="color: #ef233c;"><i class="fas fa-key"></i> Mã xác thực Admin</label>
-                <input type="password" id="reg-admin-code" placeholder="Nhập mã được cấp để làm Admin">
+            <div class="form-group">
+                <label style="color: #4361ee;"><i class="fas fa-key"></i> Mã xác thực Nhà trường</label>
+                <input type="password" id="reg-teacher-code" placeholder="Nhập mã bí mật (Gợi ý: EDU2025)">
             </div>
 
             <div class="form-group">
                 <label><i class="fas fa-key"></i> Mật khẩu</label>
-                <input type="password" id="reg-pass" placeholder="Ít nhất 8 ký tự & 1 ký tự đặc biệt">
+                <input type="password" id="reg-pass" placeholder="Nhập mật khẩu">
             </div>
 
             <div class="form-group">
@@ -56,61 +59,60 @@
                 <input type="password" id="reg-confirm" placeholder="Nhập lại mật khẩu">
             </div>
 
-            <button onclick="handleRegister()" class="btn-login">Đăng Ký Tài Khoản</button>
+            <button onclick="handleRegister()" class="btn-login">Đăng Ký Ngay</button>
         </div>
 
         <div class="login-footer">
-            <p>Đã có tài khoản? <a href="/">Đăng nhập ngay</a></p>
+            <p>Đã có tài khoản? <a href="/">Đăng nhập</a></p>
         </div>
     </div>
 
     <script>
-        // PHẦN MỚI: Hiện/Ẩn ô nhập mã Admin khi chọn loại tài khoản
-        function toggleAdminCode() {
-            const role = document.getElementById('reg-role').value;
-            const adminArea = document.getElementById('admin-code-area');
-            adminArea.style.display = (role === 'admin') ? 'block' : 'none';
-        }
-
         async function handleRegister() {
+            const fullname = document.getElementById('reg-fullname').value; // Lấy họ tên
             const u = document.getElementById('reg-user').value;
             const e = document.getElementById('reg-email').value;
             const ph = document.getElementById('reg-phone').value;
             const p = document.getElementById('reg-pass').value;
             const c = document.getElementById('reg-confirm').value;
-            
-            // Lấy thông tin role mới
-            const role = document.getElementById('reg-role').value;
-            const adminCode = document.getElementById('reg-admin-code').value;
+            const teacherCode = document.getElementById('reg-teacher-code').value;
 
-            if(!u || !e || !ph || !p) {
-                return alert("Vui lòng nhập đầy đủ tất cả các trường!");
+            if(!fullname || !u || !e || !ph || !p || !teacherCode) {
+                Swal.fire('Thiếu thông tin', 'Vui lòng nhập đầy đủ các trường!', 'warning');
+                return;
             }
 
             if(p !== c) {
-                return alert("Mật khẩu xác nhận không khớp!");
+                Swal.fire('Lỗi mật khẩu', 'Mật khẩu xác nhận không khớp!', 'error');
+                return;
             }
 
-            // Gửi dữ liệu kèm theo role và admin_code
-            const res = await fetch('/api/register', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    username: u, 
-                    password: p,
-                    email: e,
-                    phone: ph,
-                    role: role,
-                    admin_code: adminCode // Gửi mã này lên để server kiểm tra
-                })
-            });
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        full_name: fullname, // Gửi họ tên lên server
+                        username: u, password: p, email: e, phone: ph, 
+                        role: 'teacher', 
+                        teacher_code: teacherCode
+                    })
+                });
 
-            const data = await res.json();
-            if(data.status === "success") {
-                alert("Chúc mừng! Đăng ký tài khoản thành công.");
-                window.location.href = "/";
-            } else {
-                alert("Lỗi bảo mật: " + data.message);
+                const data = await res.json();
+                
+                if(data.status === "success") {
+                    Swal.fire({
+                        title: 'Thành công!',
+                        text: 'Tài khoản Giáo viên đã tạo xong. Hãy đăng nhập ngay.',
+                        icon: 'success',
+                        confirmButtonText: 'Đăng nhập'
+                    }).then(() => { window.location.href = "/"; });
+                } else {
+                    Swal.fire('Đăng ký thất bại', data.message, 'error');
+                }
+            } catch (err) {
+                Swal.fire('Lỗi kết nối', 'Không thể kết nối đến server.', 'error');
             }
         }
     </script>
