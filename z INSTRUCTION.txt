@@ -1,4 +1,5 @@
 - Tải hết mọi thứ từ trên github về rồi lưu trong một thư mục
+<<<<<<< HEAD
 - Cấu trúc thư mục:
     R/
     │── main.py 
@@ -10,6 +11,12 @@
     │   └── style.js      
     └── database.db        
 - Mở thư mục trên bằng visual code
+=======
+- Tạo hai thư mục bên trong, đặt tên là static và templates
+    + đặt file đuôi css bên trong static
+    + đặt file đuôi html bên trong templates
+- Mở thư mục trên bằng visual 
+>>>>>>> e25e0fd (Initial commit)
 - Tạo venv, chạy lệnh sau lên terminal
     python -m venv venv
 - Kích hoạt venv: .\venv\Scripts\activate
@@ -18,7 +25,12 @@
     uvicorn: chạy server
     sqlalchemy: làm việc với SQLite
     jinja2: render HTML
+<<<<<<< HEAD
 - Chạy server, chạy lệnh sau vào terminal: python -m uvicorn main:app --reload
+=======
+- Mở environment variables, gán vào path: C:\Users\Pham Hoang Bach\AppData\Roaming\Python\Python314\Scripts
+- Chạy server, chạy lệnh sau vào terminal: uvicorn main:app --reload
+>>>>>>> e25e0fd (Initial commit)
 - Truy cập https://localhost:8000
 - Sau khi dùng xong ngắt server nhấn tổ hợp phím ctrl C
 - Tắt venv: deactivate
