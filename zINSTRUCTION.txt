@@ -1,0 +1,18 @@
+- Tải hết mọi thứ từ trên github về rồi lưu trong một thư mục
+- Tạo hai thư mục bên trong, đặt tên là static và templates
+    + đặt file đuôi css bên trong static
+    + đặt file đuôi html bên trong templates
+- Mở thư mục trên bằng visual 
+- Tạo venv, chạy lệnh sau lên terminal
+    python -m venv venv
+- Kích hoạt venv: .\venv\Scripts\activate
+- Chạy lệnh sau vào terminal (nhớ phải cài pip): pip install fastapi uvicorn sqlalchemy jinja2
+    fastapi: backend chính
+    uvicorn: chạy server
+    sqlalchemy: làm việc với SQLite
+    jinja2: render HTML
+- Mở environment variables, gán vào path: C:\Users\Pham Hoang Bach\AppData\Roaming\Python\Python314\Scripts
+- Chạy server, chạy lệnh sau vào terminal: uvicorn main:app --reload
+- Truy cập https://localhost:8000
+- Sau khi dùng xong ngắt server nhấn tổ hợp phím ctrl C
+- Tắt venv: deactivate
