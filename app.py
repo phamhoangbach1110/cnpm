@@ -115,8 +115,8 @@ def require_admin(request: Request, db: Session = Depends(get_db)):
 
 def require_staff(request: Request, db: Session = Depends(get_db)):
     user = get_current_user(request, db)
-    if not user or user.role not in ["admin", "teacher"]:
-        raise HTTPException(status_code=403, detail="Chỉ Giáo viên hoặc Admin mới có quyền này.")
+    if not user or user.role not in ["admin", "teacher", "student"]:
+        raise HTTPException(status_code=403, detail="Chỉ Sinh viên, Giáo viên hoặc Admin mới có quyền này.")
     return user
 
 
@@ -413,7 +413,11 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
     booking_count = db.query(Booking).count() if u.role == 'admin' else db.query(Booking).filter(Booking.user_id == u.id).count()
     
     #  lịch sử 10 đơn gần nhất
-    bookings_db = db.query(Booking).order_by(Booking.id.desc()).limit(10).all()
+    if u.role == "admin":
+        bookings_db = db.query(Booking).order_by(Booking.id.desc()).limit(10).all()
+    else:
+        bookings_db = db.query(Booking).filter(Booking.user_id == u.id).order_by(Booking.id.desc()).limit(10).all()
+        
     history = []
     for b in bookings_db:
         r = db.query(Classroom).filter(Classroom.id == b.room_id).first()
