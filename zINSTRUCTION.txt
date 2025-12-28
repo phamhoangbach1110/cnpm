@@ -1,4 +1,4 @@
-- Tải hết mọi thứ từ trên github về rồi lưu trong một thư mục
+- Tải static, templates, app.py về rồi lưu trong một thư mục
 - Tạo hai thư mục bên trong, đặt tên là static và templates
     + đặt file đuôi css bên trong static
     + đặt file đuôi html bên trong templates
