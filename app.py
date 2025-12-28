@@ -282,12 +282,10 @@ async def create_booking(data: dict, db: Session = Depends(get_db), current_user
             
             # --- KIỂM TRA TRÙNG LỊCH ---
             if req_start < b_end and req_end > b_start:
-                
-                # SỬA LẠI CHỖ NÀY: Cộng thêm 7 tiếng để hiển thị ra giờ Việt Nam cho dễ hiểu
-                vn_start = b_start + timedelta(hours=7)
-                vn_end = b_end + timedelta(hours=7)
-                
-                conflict_msg = f"Bị trùng! Đã có lịch của {b.booker_name} ({vn_start.strftime('%H:%M')} - {vn_end.strftime('%H:%M')})"
+                conflict_msg = (
+                    f"Bị trùng! Đã có lịch của {b.booker_name} "
+                    f"({b_start.strftime('%H:%M')} - {b_end.strftime('%H:%M')})"
+                )
                 return {"status": "error", "message": conflict_msg}
                 
         except Exception:
@@ -420,8 +418,17 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
         
     history = []
     for b in bookings_db:
+        raw_time = b.start_time
+        if isinstance(raw_time, str):
+            raw_time = datetime.fromisoformat(raw_time.replace("Z", "+00:00")) #chuẩn hóa thành datetime
         r = db.query(Classroom).filter(Classroom.id == b.room_id).first()
-        history.append({"booker": b.booker_name, "room_name": r.room_name if r else "Unknown", "time": b.start_time, "duration": b.duration_hours, "status": b.status})
+        history.append({
+            "booker": b.booker_name, 
+            "room_name": r.room_name if r else "Unknown", 
+            "time": raw_time + timedelta(hours=7), # Chuyển sang giờ Việt Nam 
+            "duration": b.duration_hours, 
+            "status": b.status
+        })
 
     return templates.TemplateResponse("index.html", {
         "request": request, "username": u.username, "full_name": u.full_name, "role": u.role,
