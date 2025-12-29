@@ -151,24 +151,52 @@
     </div>
 
     <div id="cancelModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('cancelModal')">&times;</span>
-            <h2 style="margin-top:0; color: var(--color-back);">Chi tiết Lịch Đặt</h2>
-            <div style="background: #fff8e1; padding: 20px; border-radius: 12px; margin-bottom: 25px; border-left: 5px solid var(--color-cancel);">
-                <p><strong>Người đặt:</strong> <span id="cancelBooker" style="font-size: 1.1rem;"></span></p>
-                <p><strong>Phòng:</strong> <span id="cancelRoomName"></span></p>
-                <p><strong>Thời gian:</strong> <span id="cancelTime" style="font-family: monospace; font-weight: 700;"></span></p>
-            </div>
-            <p style="text-align: center; color: #666; margin-bottom: 20px;">Bạn có muốn hủy bỏ lịch đặt này không?</p>
-            <input type="hidden" id="cancelBookingId">
-            <div style="display: flex; gap: 15px;">
-                <button onclick="confirmCancel()" class="btn-custom" style="background-color: var(--color-cancel); color: var(--color-text-cancel); flex: 1; box-shadow: 0 4px 10px rgba(255, 87, 87, 0.4);"><i class="fas fa-trash-alt"></i> Hủy Lịch</button>
-                <button onclick="closeModal('cancelModal')" class="btn-custom" style="background-color: #e9ecef; color: #495057; flex: 1;">Đóng</button>
-            </div>
+    <div class="modal-content">
+        <!-- Nút đóng -->
+        <span class="close-btn" onclick="closeModal('cancelModal')">&times;</span>
+        <!-- TIÊU ĐỀ (JS sẽ đổi Hủy / Từ chối) -->
+        <h2 id="cancelModalTitle" style="margin-top:0; color: var(--color-back);">
+            Hủy lịch đặt
+        </h2>
+        <!-- Thông tin lịch đặt -->
+        <div style="background: #fff8e1; padding: 20px; border-radius: 12px; margin-bottom: 25px; border-left: 5px solid var(--color-cancel);">
+            <p><strong>Người đặt:</strong>
+                <span id="cancelBooker" style="font-size: 1.1rem;"></span>
+            </p>
+            <p><strong>Phòng:</strong>
+                <span id="cancelRoomName"></span>
+            </p>
+            <p><strong>Thời gian:</strong>
+                <span id="cancelTime" style="font-family: monospace; font-weight: 700;"></span>
+            </p>
+        </div>
+        <!-- Câu hỏi xác nhận (JS sẽ đổi nội dung) -->
+        <p id="cancelQuestion" style="text-align: center; color: #666; margin-bottom: 20px;">
+            Bạn có muốn hủy bỏ lịch đặt này không?
+        </p>
+        <!-- ID booking -->
+        <input type="hidden" id="cancelBookingId">
+        <!-- Nút hành động -->
+        <div style="display: flex; gap: 15px;">
+            <button
+                id="confirmCancelBtn"
+                onclick="confirmCancel()"
+                class="btn-custom"
+                style="background-color: var(--color-cancel); color: var(--color-text-cancel); flex: 1; box-shadow: 0 4px 10px rgba(255, 87, 87, 0.4);">
+                <i class="fas fa-trash-alt"></i> Hủy Lịch
+            </button>
+            <button
+                onclick="closeModal('cancelModal')"
+                class="btn-custom"
+                style="background-color: #e9ecef; color: #495057; flex: 1;">
+                Đóng
+            </button>
         </div>
     </div>
+</div>
 
     <script>
+        const CURRENT_ROLE = "{{ role }}";
         const START_HOUR = 7;
         const END_HOUR = 22; 
         const classrooms = {{ classrooms | tojson | safe }};
@@ -289,6 +317,18 @@
             document.getElementById('cancelRoomName').innerText = room ? room.room_name : 'Unknown';
             document.getElementById('cancelTime').innerText = `${booking.startTime.toLocaleTimeString().slice(0,5)} (${booking.duration_hours})`;
             document.getElementById('cancelBookingId').value = booking.id;
+            // Phân biệt Admin vs User
+            if (CURRENT_ROLE === "admin") {
+                document.getElementById("cancelModalTitle").innerText = "Từ chối lịch đặt";
+                document.getElementById("cancelQuestion").innerText =
+                    "Bạn đang từ chối lịch đặt của người dùng. Hành động này không thể hoàn tác.";
+                document.getElementById("confirmCancelBtn").innerText = "Xác nhận từ chối";
+            } else {
+                document.getElementById("cancelModalTitle").innerText = "Hủy lịch đặt";
+                document.getElementById("cancelQuestion").innerText =
+                    "Bạn có muốn hủy bỏ lịch đặt này không?";
+                document.getElementById("confirmCancelBtn").innerText = "Hủy lịch";
+            }
             document.getElementById('cancelModal').style.display = 'block';
         }
 
