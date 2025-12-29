@@ -86,18 +86,19 @@
                                 <td>{{ u.phone }}</td>
                                 <td>
                                     {% if u.role == 'admin' %} <span class="role-badge role-admin">Quản trị viên</span>
-                                    {% elif u.role == 'teacher' %} <span class="role-badge role-teacher">Giáo viên</span>
+                                    {% elif u.role == 'teacher' %} <span class="role-badge role-teacher">Giảng viên</span>
                                     {% else %} <span class="role-badge role-student">Sinh viên</span> {% endif %}
                                 </td>
                                 <td>
-                                    <button class="btn-premium btn-blue" 
-                                        onclick="showEditUserModal({{ u.id }}, '{{ u.username }}', '{{ u.email }}', '{{ u.phone }}', '{{ u.role }}')">
-                                        <i class="fas fa-edit"></i> Sửa
-                                    </button>
-                                    
-                                    {% if u.username != username %} <button class="btn-premium btn-red" onclick="deleteUser({{ u.id }}, '{{ u.username }}')">
+                                    {% if u.username != username %}
+                                        <button class="btn-premium btn-blue" 
+                                            onclick="showEditUserModal('{{ u.id }}', '{{ u.username }}', '{{ u.email }}', '{{ u.phone }}', '{{ u.role }}')">
+                                            <i class="fas fa-edit"></i> Sửa
+                                        </button>
+
+                                        <button class="btn-premium btn-red" onclick="deleteUser('{{ u.id }}', '{{ u.username }}')">
                                         <i class="fas fa-trash"></i> Xóa
-                                    </button>
+                                        </button>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -136,8 +137,7 @@
                     <label>Vai trò:</label>
                     <select id="userRole" name="role">
                         <option value="student">Sinh viên</option>
-                        <option value="teacher">Giáo viên</option>
-                        <option value="admin">Quản trị viên</option>
+                        <option value="teacher">Giảng viên</option>
                     </select>
                 </div>
 

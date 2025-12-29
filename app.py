@@ -117,8 +117,9 @@ def require_admin(request: Request, db: Session = Depends(get_db)):
 
 def require_staff(request: Request, db: Session = Depends(get_db)):
     user = get_current_user(request, db)
-    if not user or user.role not in ["admin", "teacher"]:
-        raise HTTPException(status_code=403, detail="Chỉ Giáo viên hoặc Admin mới có quyền này.")
+    if not user or user.role not in ["admin", "teacher", "student"]:
+        raise HTTPException(status_code=403, 
+                            detail="FATAL!!.")
     return user
 
 # ============================================================
@@ -337,8 +338,11 @@ async def create_booking(data: dict, db: Session = Depends(get_db), current_user
     # 4. Lưu lịch (Pending)
     booker_display = current_user.full_name if current_user.full_name else current_user.username
     new_booking = Booking(
-        room_id=data['room_id'], user_id=current_user.id, booker_name=booker_display, 
-        start_time=data['start_time'], duration_hours=data['duration_display'], 
+        room_id=data['room_id'], 
+        user_id=current_user.id, 
+        booker_name=booker_display, 
+        start_time=data['start_time'], 
+        duration_hours=data['duration_display'], 
         status="Pending" # <--- Lịch mới luôn là Pending
     )
     db.add(new_booking)
@@ -355,21 +359,22 @@ async def delete_booking(data: dict, db: Session = Depends(get_db), current_user
     db.commit()
     return {"status": "success"}
 
-@app.post("/api/bookings/approve")
-async def approve_booking(data: dict, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
-    bk = db.query(Booking).filter(Booking.id == data['booking_id']).first()
-    if not bk: return {"status": "error", "message": "Không tìm thấy lịch!"}
-    bk.status = "Confirmed"
-    db.commit()
-    return {"status": "success", "message": "Đã duyệt lịch!"}
+#unused approve/reject booking endpoints
+#@app.post("/api/bookings/approve")
+#async def approve_booking(data: dict, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+#    bk = db.query(Booking).filter(Booking.id == data['booking_id']).first()
+#    if not bk: return {"status": "error", "message": "Không tìm thấy lịch!"}
+#    bk.status = "Confirmed"
+#    db.commit()
+#    return {"status": "success", "message": "Đã duyệt lịch!"}
 
-@app.post("/api/bookings/reject")
-async def reject_booking(data: dict, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
-    bk = db.query(Booking).filter(Booking.id == data['booking_id']).first()
-    if not bk: return {"status": "error", "message": "Không tìm thấy lịch!"}
-    db.delete(bk)
-    db.commit()
-    return {"status": "success", "message": "Đã từ chối và hủy lịch!"}
+#@app.post("/api/bookings/reject")
+#async def reject_booking(data: dict, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+#    bk = db.query(Booking).filter(Booking.id == data['booking_id']).first()
+#    if not bk: return {"status": "error", "message": "Không tìm thấy lịch!"}
+#    db.delete(bk)
+#    db.commit()
+#    return {"status": "success", "message": "Đã từ chối và hủy lịch!"}
 
 # ============================================================
 # 8. API GROUP: QUẢN LÝ NGƯỜI DÙNG (ADMIN)
@@ -420,17 +425,43 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
     rooms = db.query(Classroom).all()
     booking_count = db.query(Booking).count() if u.role == 'admin' else db.query(Booking).filter(Booking.user_id == u.id).count()
     
-    bookings_db = db.query(Booking).order_by(Booking.id.desc()).limit(10).all()
+    if u.role == "admin":
+        bookings_db = (
+            db.query(Booking)
+            .order_by(Booking.id.desc())
+            .limit(10)
+            .all()
+        )
+    else:
+        bookings_db = (
+            db.query(Booking)
+            .filter(Booking.user_id == u.id)
+            .order_by(Booking.id.desc())
+            .limit(10)
+            .all()
+        )
+
     history = []
     for b in bookings_db:
         r = db.query(Classroom).filter(Classroom.id == b.room_id).first()
+
+        raw_time = b.start_time
+        if isinstance(raw_time, str):
+            raw_time = datetime.fromisoformat(raw_time.replace("Z", "+00:00"))
+            
         history.append({
-            "booker": b.booker_name, "room_name": r.room_name if r else "Unknown", 
-            "time": b.start_time, "duration": b.duration_hours, "status": b.status
+            "booker": b.booker_name, 
+            "room_name": r.room_name if r else "Unknown", 
+            "time": raw_time + timedelta(hours=7), 
+            "duration": b.duration_hours, 
+            "status": b.status
         })
 
     return templates.TemplateResponse("index.html", {
-        "request": request, "username": u.username, "full_name": u.full_name, "role": u.role,
+        "request": request, 
+        "username": u.username, 
+        "full_name": u.full_name, 
+        "role": u.role,
         "classrooms": rooms, "total_rooms": len(rooms), 
         "active_rooms": len([r for r in rooms if r.status=='Available']),
         "booking_count": booking_count, "history": history
@@ -482,13 +513,25 @@ async def profile(request: Request, db: Session = Depends(get_db)):
     history = []
     for b in user_bookings:
         r = db.query(Classroom).filter(Classroom.id==b.room_id).first()
+
+        raw_time = b.start_time
+        if isinstance(raw_time, str):
+            raw_time = datetime.fromisoformat(raw_time.replace("Z", "+00:00"))
+        vn_time = raw_time + timedelta(hours=7)
+        
         history.append({
             "room_name": r.room_name if r else "Unknown", 
-            "start_time": b.start_time, "duration": b.duration_hours, "status": b.status
+            "start_time": vn_time.strftime("%Y-%m-%d %H:%M"), 
+            "duration": b.duration_hours, 
+            "status": b.status
         })
     return templates.TemplateResponse("profile.html", {
-        "request": request, "user": u, "username": u.username, 
-        "role": u.role, "full_name": u.full_name, "history": history
+        "request": request, 
+        "user": u, 
+        "username": u.username, 
+        "role": u.role, 
+        "full_name": u.full_name, 
+        "history": history
     })
 
 # ============================================================
