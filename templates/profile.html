@@ -44,8 +44,10 @@
             <nav>
                 <ul>
                     <li><a href="/dashboard"><i class="fas fa-th-large"></i> Tổng quan</a></li>
+                    {% if role == 'admin' or role == 'teacher' %}
                     <li><a href="/booking-scheduler"><i class="fas fa-calendar-alt"></i> Lịch đặt phòng</a></li>
                     <li><a href="/room-management"><i class="fas fa-door-open"></i> Quản lý phòng học</a></li>
+                    {% endif %}
                     {% if role == 'admin' %}
                     <li><a href="/user-management"><i class="fas fa-user-shield"></i> Quản lý người dùng</a></li>
                     {% endif %}

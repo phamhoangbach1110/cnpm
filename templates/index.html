@@ -18,12 +18,18 @@
             <nav>
                 <ul>
                     <li><a href="/dashboard" class="active"><i class="fas fa-th-large"></i> Tổng quan</a></li>
+                    
+                    {% if role == 'admin' or role == 'teacher' %}
                     <li><a href="/booking-scheduler"><i class="fas fa-calendar-alt"></i> Lịch đặt phòng</a></li>
                     <li><a href="/room-management"><i class="fas fa-door-open"></i> Quản lý phòng học</a></li>
+                    {% endif %}
+                    
                     {% if role == 'admin' %}
                     <li><a href="/user-management"><i class="fas fa-user-shield"></i> Quản lý người dùng</a></li>
                     {% endif %}
+
                     <li><a href="/profile"><i class="fas fa-user-circle"></i> Quản lý tài khoản</a></li>
+
                     <li class="logout-item"><a href="/logout" style="color: #ef233c;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
                 </ul>
             </nav>
@@ -91,8 +97,8 @@
                                 <td><strong>{{ item.booker }}</strong></td>
                                 <td>{{ item.room_name }}</td>
                                 <td>
-                                    {{ item.time.strftime('%Y-%m-%d') }}
-                                    <span style="color:#888; font-size:0.8rem;"> ({{ item.time.strftime('%H:%M') }})</span>
+                                    {{ item.time.split('T')[0] }}
+                                    <span style="color:#888; font-size:0.8rem;"> ({{ item.time.split('T')[1][:5] }})</span>
                                 </td>
                                 <td>{{ item.duration }}</td>
                                 <td>
