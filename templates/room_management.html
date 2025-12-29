@@ -249,8 +249,8 @@
         }
 
         form.onsubmit = async (e) => {
-            e.preventDefault(); //ngăn chặn gửi form mặc định
-            const data = Object.fromEntries(new FormData(form).entries()); 
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(form).entries());
             data.capacity = parseInt(data.capacity);
             if(currentAction === 'update') data.room_id = parseInt(data.room_id);
             
