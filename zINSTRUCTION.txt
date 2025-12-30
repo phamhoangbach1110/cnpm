@@ -12,7 +12,7 @@
     sqlalchemy: làm việc với SQLite
     jinja2: render HTML
 - Mở environment variables, gán vào path: C:\Users\<username>\AppData\Roaming\Python\Python314\Scripts
-- Chạy server, chạy lệnh sau vào terminal: uvicorn main:app --reload
+- Chạy server, chạy lệnh sau vào terminal: uvicorn app:app --reload
 - Truy cập https://localhost:8000
 - Sau khi dùng xong ngắt server nhấn tổ hợp phím ctrl C
 - Tắt venv: deactivate
