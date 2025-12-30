@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Quản lý tài khoản - EduManager</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css?v1.3">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -140,7 +140,7 @@
                                 </td>
                                 <td>{{ item.start_time }}</td>
                                 <td>{{ item.duration }}</td>
-                                <td><span style="color: #06d6a0; font-weight: bold; font-size: 0.85rem;">{{ item.status }}</span></td>
+                                <td><span class="status-badge {{ item.status | lower }}">{{ item.status }}</span></td>
                             </tr>
                             {% else %}
                             <tr>

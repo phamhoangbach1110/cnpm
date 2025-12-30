@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hệ Thống Quản Lý Lớp Học</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css?v1.3">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -103,7 +103,7 @@
                                 </td>
                                 <td>{{ item.duration }}</td>
                                 <td>
-                                    <span style="background:#e6fffa; color:#06d6a0; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:0.8rem;">Thành công</span>
+                                    <span class="status-badge {{ item.status | lower }}">{{ item.status }}</span>
                                 </td>
                             </tr>
                             {% else %}

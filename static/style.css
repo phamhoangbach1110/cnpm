@@ -507,3 +507,23 @@ table td { padding: 20px 15px; border-bottom: 1px solid #f8f9fa; }
 .booking-bar.confirmed {
     background: linear-gradient(135deg, #4361ee, #3a0ca3);
 }
+
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+/* Pending – VÀNG */
+.status-badge.pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+/* Confirmed – XANH */
+.status-badge.confirmed {
+    background-color: #e7f1ff;
+    color: #1c5fd4;
+}
