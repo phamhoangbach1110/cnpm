@@ -38,7 +38,7 @@ class User(Base):
     email = Column(String, unique=True) 
     phone = Column(String) 
     role = Column(String, default="teacher") # admin, teacher, student
-    full_name = Column(String)
+    #full_name = Column(String)
     verification_code = Column(String, nullable=True)
 
 class Classroom(Base):
@@ -105,9 +105,9 @@ def send_verification_email(receiver_email):
 
 # --- Hàm Xác thực & Phân quyền ---
 def get_current_user(request: Request, db: Session = Depends(get_db)):
-    username = request.cookies.get("current_user")
-    if not username: return None
-    return db.query(User).filter(User.username == username).first()
+    user_id = request.cookies.get("current_user")
+    if not user_id: return None
+    return db.query(User).filter(User.id == int(user_id)).first()
 
 def require_admin(request: Request, db: Session = Depends(get_db)):
     user = get_current_user(request, db)
@@ -130,7 +130,7 @@ def require_staff(request: Request, db: Session = Depends(get_db)):
 async def login(data: dict, response: Response, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == data['username'], User.password == data['password']).first()
     if user:
-        response.set_cookie(key="current_user", value=user.username)
+        response.set_cookie(key="current_user", value=str(user.id), httponly=True)
         return {"status": "success"}
     return {"status": "error", "message": "Sai tài khoản hoặc mật khẩu"}
 
@@ -152,10 +152,10 @@ async def register_confirm(data: dict, db: Session = Depends(get_db)):
         return {"status": "error", "message": "Tên đăng nhập này đã có người sử dụng!"}
     
     # 2. Check trùng Họ tên
-    if db.query(User).filter(User.full_name == data['full_name']).first():
-        return {"status": "error", "message": "Họ và tên này đã tồn tại! Vui lòng thêm ký tự phân biệt."}
+    #if db.query(User).filter(User.full_name == data['full_name']).first():
+    #    return {"status": "error", "message": "Họ và tên này đã tồn tại! Vui lòng thêm ký tự phân biệt."}
 
-    # 3. Check Mật khẩu mạnh
+    # 2. Check Mật khẩu mạnh
     password = data['password']
     if len(password) <= 8:
         return {"status": "error", "message": "Mật khẩu phải dài hơn 8 ký tự!"}
@@ -165,7 +165,7 @@ async def register_confirm(data: dict, db: Session = Depends(get_db)):
     new_user = User(
         username=data['username'], password=data['password'], 
         email=data['email'], phone=data['phone'], 
-        role=data['role'], full_name=data['full_name']
+        role=data['role'], #full_name=data['full_name']
     )
     db.add(new_user)
     db.commit()
@@ -336,7 +336,7 @@ async def create_booking(data: dict, db: Session = Depends(get_db), current_user
         except Exception: continue 
 
     # 4. Lưu lịch (Pending)
-    booker_display = current_user.full_name if current_user.full_name else current_user.username
+    booker_display = current_user.username#current_user.full_name if current_user.full_name else current_user.username
     new_booking = Booking(
         room_id=data['room_id'], 
         user_id=current_user.id, 
@@ -460,7 +460,7 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse("index.html", {
         "request": request, 
         "username": u.username, 
-        "full_name": u.full_name, 
+        #"full_name": u.full_name, 
         "role": u.role,
         "classrooms": rooms, "total_rooms": len(rooms), 
         "active_rooms": len([r for r in rooms if r.status=='Available']),
@@ -473,7 +473,7 @@ async def room_mgmt(request: Request, db: Session = Depends(get_db)):
     if not u: return RedirectResponse("/")
     return templates.TemplateResponse("room_management.html", {
         "request": request, "classrooms": db.query(Classroom).all(), 
-        "role": u.role, "username": u.username, "full_name": u.full_name
+        "role": u.role, "username": u.username, #"full_name": u.full_name
     })
 
 @app.get("/booking-scheduler", response_class=HTMLResponse)
@@ -493,7 +493,7 @@ async def scheduler(request: Request, db: Session = Depends(get_db)):
     
     return templates.TemplateResponse("booking_scheduler.html", {
         "request": request, "classrooms": rooms, "bookings": bookings, 
-        "username": u.username, "role": u.role, "full_name": u.full_name
+        "username": u.username, "role": u.role, #"full_name": u.full_name
     })
 
 @app.get("/user-management", response_class=HTMLResponse)
@@ -502,7 +502,7 @@ async def user_mgmt(request: Request, db: Session = Depends(get_db)):
     if not u or u.role != "admin": return RedirectResponse("/dashboard")
     return templates.TemplateResponse("user_management.html", {
         "request": request, "users": db.query(User).all(), 
-        "username": u.username, "role": u.role, "full_name": u.full_name
+        "username": u.username, "role": u.role, #"full_name": u.full_name
     })
 
 @app.get("/profile", response_class=HTMLResponse)
@@ -530,7 +530,7 @@ async def profile(request: Request, db: Session = Depends(get_db)):
         "user": u, 
         "username": u.username, 
         "role": u.role, 
-        "full_name": u.full_name, 
+        #"full_name": u.full_name, 
         "history": history
     })
 
@@ -544,7 +544,8 @@ def startup_event():
     if not db.query(User).filter(User.username == "admin").first():
         db.add(User(
             username="admin", password="123", role="admin", 
-            full_name="Quản Trị Viên", email="admin@edu.vn", phone="0999999999"
+            #full_name="Quản Trị Viên", 
+            email="admin@edu.vn", phone="0999999999"
         ))
     
     # Tạo Phòng mẫu
