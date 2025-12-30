@@ -163,9 +163,12 @@ async def register_confirm(data: dict, db: Session = Depends(get_db)):
         return {"status": "error", "message": "Mật khẩu phải có ít nhất 1 ký tự đặc biệt!"}
 
     new_user = User(
-        username=data['username'], password=data['password'], 
-        email=data['email'], phone=data['phone'], 
-        role=data['role'], #full_name=data['full_name']
+        username=data['username'], 
+        password=data['password'], 
+        email=data['email'], 
+        phone=data['phone'], 
+        role=data['role'], 
+        #full_name=data['full_name']
     )
     db.add(new_user)
     db.commit()

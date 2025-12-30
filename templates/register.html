@@ -62,6 +62,14 @@
             </div>
 
             <div class="form-group">
+                <label>Vai trò</label>
+                <select id="reg-role" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd;">
+                    <option value="student">Sinh viên</option>
+                    <option value="teacher" selected>Giảng viên</option>
+                </select>
+            </div>
+
+            <div class="form-group">
                 <label>Mật khẩu</label>
                 <input type="password" id="reg-pass" placeholder="Mật khẩu...">
             </div>
@@ -139,6 +147,7 @@
             const u = document.getElementById('reg-user').value;
             const e = document.getElementById('reg-email').value;
             const ph = document.getElementById('reg-phone').value;
+            const r = document.getElementById('reg-role').value;
             const p = document.getElementById('reg-pass').value;
             const c = document.getElementById('reg-confirm').value;
 
@@ -164,7 +173,7 @@
                 const res = await fetch('/api/register/confirm', {
                     method: 'POST', headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        username: u, email: e, phone: ph, password: p, role: 'teacher'
+                        username: u, email: e, phone: ph, password: p, role: r
                     })
                 });
                 const data = await res.json();
