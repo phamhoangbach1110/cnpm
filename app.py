@@ -346,7 +346,7 @@ async def create_booking(data: dict, db: Session = Depends(get_db), current_user
         booker_name=booker_display, 
         start_time=data['start_time'], 
         duration_hours=data['duration_display'], 
-        status="Pending" # <--- Lịch mới luôn là Pending
+        status="Pending" 
     )
     db.add(new_booking)
     db.commit()
@@ -362,22 +362,21 @@ async def delete_booking(data: dict, db: Session = Depends(get_db), current_user
     db.commit()
     return {"status": "success"}
 
-#unused approve/reject booking endpoints
-#@app.post("/api/bookings/approve")
-#async def approve_booking(data: dict, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
-#    bk = db.query(Booking).filter(Booking.id == data['booking_id']).first()
-#    if not bk: return {"status": "error", "message": "Không tìm thấy lịch!"}
-#    bk.status = "Confirmed"
-#    db.commit()
-#    return {"status": "success", "message": "Đã duyệt lịch!"}
+@app.post("/api/bookings/approve")
+async def approve_booking(data: dict, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    bk = db.query(Booking).filter(Booking.id == data['booking_id']).first()
+    if not bk: return {"status": "error", "message": "Không tìm thấy lịch!"}
+    bk.status = "Confirmed"
+    db.commit()
+    return {"status": "success", "message": "Đã duyệt lịch!"}
 
-#@app.post("/api/bookings/reject")
-#async def reject_booking(data: dict, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
-#    bk = db.query(Booking).filter(Booking.id == data['booking_id']).first()
-#    if not bk: return {"status": "error", "message": "Không tìm thấy lịch!"}
-#    db.delete(bk)
-#    db.commit()
-#    return {"status": "success", "message": "Đã từ chối và hủy lịch!"}
+@app.post("/api/bookings/reject")
+async def reject_booking(data: dict, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    bk = db.query(Booking).filter(Booking.id == data['booking_id']).first()
+    if not bk: return {"status": "error", "message": "Không tìm thấy lịch!"}
+    db.delete(bk)
+    db.commit()
+    return {"status": "success", "message": "Đã từ chối và hủy lịch!"}
 
 # ============================================================
 # 8. API GROUP: QUẢN LÝ NGƯỜI DÙNG (ADMIN)

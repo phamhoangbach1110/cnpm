@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Lịch Biểu Đặt Phòng - EduManager</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css?v1.2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -42,7 +42,6 @@
             border-left: 4px solid #fff; 
         }
         .booking-bar:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 6px 15px rgba(67, 97, 238, 0.4); z-index: 25; }
-        
         .drag-selection { position: absolute; background: rgba(67, 97, 238, 0.2); border: 2px dashed #4361ee; border-radius: 4px; pointer-events: none; z-index: 10; }
         
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(43, 45, 66, 0.6); backdrop-filter: blur(4px); }
@@ -113,7 +112,8 @@
                 </div>
                 
                 <div style="display: flex; gap: 15px; font-size: 0.85rem; font-weight: 600;">
-                    <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: var(--color-bar); border-radius: 3px;"></span> Đã đặt</span>
+                    <span><span style="width:12px;height:12px;background:#ffd166;border-radius:3px;"></span> Chờ duyệt</span>
+                    <span><span style="width:12px;height:12px;background:#4361ee;border-radius:3px;"></span> Đã duyệt</span>
                     <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #fff; border: 1px solid #ccc; border-radius: 3px;"></span> Trống</span>
                     <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #fff8e1; border: 1px solid #ffecb3; border-radius: 3px;"></span> Bảo trì</span>
                 </div>
@@ -162,7 +162,10 @@
             <p id="cancelQuestion" style="text-align: center; color: #666; margin-bottom: 20px;"></p>
             <input type="hidden" id="cancelBookingId">
             <div style="display: flex; gap: 15px;">
-                <button id="confirmCancelBtn" onclick="confirmCancel()" class="btn-custom" style="background-color: var(--color-cancel); color: var(--color-text-cancel); flex: 1; box-shadow: 0 4px 10px rgba(255, 87, 87, 0.4);"><i class="fas fa-trash-alt"></i></button>
+                {% if role == 'admin' %}
+                <button onclick="approveBooking()" class="btn-custom" style="background:#22c55e;color:white;flex:1;">Duyệt</button>
+                {% endif %}
+                <button id="confirmCancelBtn" onclick="confirmCancel()" class="btn-custom" style="background-color: var(--color-cancel); color: var(--color-text-cancel); flex: 1; box-shadow: 0 4px 10px rgba(255, 87, 87, 0.4);"><i class="fas fa-trash-alt"></i>Hủy</button>
                 <button onclick="closeModal('cancelModal')" class="btn-custom" style="background-color: #e9ecef; color: #495057; flex: 1;">Đóng</button>
             </div>
         </div>
@@ -261,6 +264,7 @@
 
             requestAnimationFrame(() => {
                 bookings.forEach(b => {
+                    if (b.status === 'rejected') return;
                     if(b.date !== date) return;
                     const roomIndex = classrooms.findIndex(r => r.id == b.room_id);
                     if(roomIndex === -1) return;
@@ -272,7 +276,7 @@
                     if(targetRow && targetRow.children[cellIndex]) {
                         const targetCell = targetRow.children[cellIndex];
                         const bar = document.createElement('div');
-                        bar.className = 'booking-bar';
+                        bar.className = `booking-bar ${b.status.toLowerCase()}`;
                         bar.style.width = (targetCell.offsetWidth * b.duration * 2 - 4) + 'px'; 
                         bar.style.left = (targetCell.offsetLeft + 2) + 'px';
                         bar.style.top = (targetCell.offsetTop + 7) + 'px';
@@ -293,8 +297,8 @@
             
             // Phân biệt Admin vs User
             if (CURRENT_ROLE === "admin") {
-                document.getElementById("cancelModalTitle").innerText = "Từ chối lịch đặt";
-                document.getElementById("cancelQuestion").innerText = "Lịch đặt của người dùng này sẽ bị TỪ CHỐI. Bạn có chắc muốn tiếp tục?";
+                document.getElementById("cancelModalTitle").innerText = "Chi tiết lịch đặt";
+                document.getElementById("cancelQuestion").innerText = "Duyệt hoặc từ chối lịch đặt này?.";
                 document.getElementById("confirmCancelBtn").innerText = "Xác nhận từ chối";
             } else {
                 document.getElementById("cancelModalTitle").innerText = "Hủy lịch đặt";
@@ -432,6 +436,16 @@
 
         document.getElementById('scheduleDate').addEventListener('change', renderTable);
         initScheduler();
+
+        function approveBooking() {
+            const id = document.getElementById('cancelBookingId').value;
+
+            fetch('/api/bookings/approve', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ booking_id: id })
+            }).then(() => location.reload());
+        }
     </script>
 </body>
 </html>
