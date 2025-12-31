@@ -370,14 +370,13 @@ async def approve_booking(data: dict, db: Session = Depends(get_db), current_use
     db.commit()
     return {"status": "success", "message": "Đã duyệt lịch!"}
 
-@app.post("/api/bookings/reject")
-async def reject_booking(data: dict, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
-    bk = db.query(Booking).filter(Booking.id == data['booking_id']).first()
-    if not bk: return {"status": "error", "message": "Không tìm thấy lịch!"}
-    db.delete(bk)
-    db.commit()
-    return {"status": "success", "message": "Đã từ chối và hủy lịch!"}
-
+#@app.post("/api/bookings/reject")
+#async def reject_booking(data: dict, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+#    bk = db.query(Booking).filter(Booking.id == data['booking_id']).first()
+#    if not bk: return {"status": "error", "message": "Không tìm thấy lịch!"}
+#    db.delete(bk)
+#    db.commit()
+#    return {"status": "success", "message": "Đã từ chối và hủy lịch!"}
 # ============================================================
 # 8. API GROUP: QUẢN LÝ NGƯỜI DÙNG (ADMIN)
 # ============================================================
