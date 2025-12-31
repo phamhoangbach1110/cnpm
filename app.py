@@ -484,18 +484,28 @@ async def scheduler(request: Request, db: Session = Depends(get_db)):
     if not u: return RedirectResponse("/")
     
     bookings = [{
-        "id":b.id, "room_id":b.room_id, "booker_name":b.booker_name, 
-        "start_time":b.start_time, "duration_hours":b.duration_hours, "status": b.status
+        "id":b.id, 
+        "room_id":b.room_id, 
+        "booker_name":b.booker_name, 
+        "start_time":b.start_time, 
+        "duration_hours":b.duration_hours, 
+        "status": b.status
     } for b in db.query(Booking).all()]
     
     rooms = [{
-        "id":c.id, "room_name":c.room_name, "capacity":c.capacity, 
-        "equipment":c.equipment, "status":c.status
+        "id":c.id, 
+        "room_name":c.room_name, 
+        "capacity":c.capacity, 
+        "equipment":c.equipment, 
+        "status":c.status
     } for c in db.query(Classroom).all()]
     
     return templates.TemplateResponse("booking_scheduler.html", {
-        "request": request, "classrooms": rooms, "bookings": bookings, 
-        "username": u.username, "role": u.role, #"full_name": u.full_name
+        "request": request, 
+        "classrooms": rooms, 
+        "bookings": bookings, 
+        "username": u.username, 
+        "role": u.role, #"full_name": u.full_name
     })
 
 @app.get("/user-management", response_class=HTMLResponse)
