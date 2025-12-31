@@ -276,7 +276,7 @@
                     if(targetRow && targetRow.children[cellIndex]) {
                         const targetCell = targetRow.children[cellIndex];
                         const bar = document.createElement('div');
-                        bar.className = `booking-bar ${b.status.toLowerCase()}`;
+                        bar.className = `booking-bar ${b.status}`;
                         bar.style.width = (targetCell.offsetWidth * b.duration * 2 - 4) + 'px'; 
                         bar.style.left = (targetCell.offsetLeft + 2) + 'px';
                         bar.style.top = (targetCell.offsetTop + 7) + 'px';
