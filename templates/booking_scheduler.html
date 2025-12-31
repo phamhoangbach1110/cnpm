@@ -163,7 +163,7 @@
             <input type="hidden" id="cancelBookingId">
             <div style="display: flex; gap: 15px;">
                 {% if role == 'admin' %}
-                <button onclick="approveBooking()" class="btn-custom" style="background:#22c55e;color:white;flex:1;">Duyệt</button>
+                <button id="approveBtn" onclick="approveBooking()" class="btn-custom" style="background:#22c55e;color:white;flex:1; display:none;">Duyệt</button>
                 {% endif %}
                 <button id="confirmCancelBtn" onclick="confirmCancel()" class="btn-custom" style="background-color: var(--color-cancel); color: var(--color-text-cancel); flex: 1; box-shadow: 0 4px 10px rgba(255, 87, 87, 0.4);"><i class="fas fa-trash-alt"></i>Hủy</button>
                 <button onclick="closeModal('cancelModal')" class="btn-custom" style="background-color: #e9ecef; color: #495057; flex: 1;">Đóng</button>
@@ -300,6 +300,14 @@
                 document.getElementById("cancelModalTitle").innerText = "Chi tiết lịch đặt";
                 document.getElementById("cancelQuestion").innerText = "Duyệt hoặc từ chối lịch đặt này?.";
                 document.getElementById("confirmCancelBtn").innerText = "Xác nhận từ chối";
+
+                const approveBtn = document.getElementById("approveBtn");
+
+                if (booking.status === "Pending") {
+                    approveBtn.style.display = "flex";
+                } else {
+                    approveBtn.style.display = "none";
+                }
             } else {
                 document.getElementById("cancelModalTitle").innerText = "Hủy lịch đặt";
                 document.getElementById("cancelQuestion").innerText = "Bạn có muốn hủy bỏ lịch đặt này không?";
