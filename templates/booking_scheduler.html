@@ -323,7 +323,9 @@
             const currentDate = document.getElementById('scheduleDate').value;
 
             const res = await fetch('/api/bookings/delete', {
-                method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ booking_id: bookingId })
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify({ booking_id: bookingId })
             });
             const result = await res.json();
             if(result.status === 'success') {

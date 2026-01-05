@@ -430,7 +430,6 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
         bookings_db = (
             db.query(Booking)
             .order_by(Booking.id.desc())
-            .limit(10)
             .all()
         )
     else:
@@ -438,7 +437,6 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
             db.query(Booking)
             .filter(Booking.user_id == u.id)
             .order_by(Booking.id.desc())
-            .limit(10)
             .all()
         )
 
